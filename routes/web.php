@@ -6,8 +6,13 @@ use App\Http\Controllers\Admin\FuzzyController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\RiwayatController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\homepage\JurnalController;
+use App\Http\Controllers\homepage\LandingController;
+use App\Http\Controllers\homepage\LandingFuzzyController;
 
-Route::view('/', 'welcome');
+Route::get('/', [LandingController::class, 'index'])->name('home');
+Route::post('/kalkulator/hitung', [LandingFuzzyController::class, 'hitung'])->name('kalkulator.hitung');
+Route::get('/jurnal/{id}/download', [JurnalController::class, 'download'])->name('jurnal.download');
 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -25,3 +30,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     });
 });
+
+
+
