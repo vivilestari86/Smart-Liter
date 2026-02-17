@@ -9,6 +9,7 @@ class LandingController extends Controller
 {
     public function index()
     {
+
         $journals = Journal::query()
             ->orderBy('created_at', 'asc')
             ->take(3)

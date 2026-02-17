@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SmartLiter</title>
+  <title>SmartLiter - Jurnal Interaktif</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
   
@@ -35,6 +35,7 @@
       backdrop-filter: blur(10px);
       padding: 1rem 0;
       box-shadow: 0 4px 20px rgba(0,0,0,.08);
+      z-index: 1000;
     }
 
     .navbar-brand {
@@ -237,98 +238,209 @@
       transform: scale(0.98);
     }
 
-    /* JURNAL SECTION REDESIGN - DENGAN PDF VIEWER */
+    /* JURNAL SECTION REDESIGN - DENGAN PDF VIEWER DAN SCROLL SNAP */
     #jurnal {
       padding: 80px 0;
       background: linear-gradient(145deg, #b3ebfc, #bddc74);
       position: relative;
+      overflow: hidden;
     }
 
-    .journal-slider {
-      display: flex;
-      gap: 25px;
-      overflow-x: auto;
-      padding: 20px 0;
-      scrollbar-width: none;
+    .journal-container {
       position: relative;
-      animation: slideJournals 25s infinite linear;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 60px; /* Memberi ruang untuk panah navigasi */
     }
 
-    .journal-slider:hover {
-      animation-play-state: paused;
-    }
-
-    @keyframes slideJournals {
-      0% { transform: translateX(0); }
-      50% { transform: translateX(calc(-100% + 900px)); }
-      100% { transform: translateX(0); }
-    }
-
-    .journal-slider::-webkit-scrollbar {
-      display: none;
-    }
-
-    .journal-card-modern {
-      min-width: 350px;
-      background: rgba(255,255,255,.97);
-      border-radius: 24px;
-      padding: 1.8rem;
+    /* Journal wrapper dengan scroll snap */
+    .journal-snap-wrapper {
       display: flex;
-      gap: 20px;
-      box-shadow: 0 20px 35px rgba(0,0,0,.2);
+      gap: 30px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      padding: 20px 10px 30px 10px;
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE/Edge */
+      cursor: grab;
+    }
+
+    .journal-snap-wrapper::-webkit-scrollbar {
+      display: none; /* Chrome/Safari */
+    }
+
+    .journal-snap-wrapper:active {
+      cursor: grabbing;
+    }
+
+    /* Journal card dengan scroll snap alignment */
+    .journal-card-modern {
+      min-width: calc(100% - 40px); /* Lebar card hampir penuh dengan jarak */
+      max-width: 800px;
+      background: rgba(255,255,255,.97);
+      border-radius: 32px;
+      padding: 2.5rem;
+      display: flex;
+      gap: 30px;
+      box-shadow: 0 30px 45px rgba(0,0,0,.2);
       border: 1px solid rgba(255,255,255,.2);
       transition: all 0.3s ease;
+      scroll-snap-align: center; /* Memusatkan card saat di-scroll */
+      margin: 0 auto;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    @media (min-width: 992px) {
+      .journal-card-modern {
+        min-width: 900px;
+      }
     }
 
     .journal-card-modern:hover {
       transform: scale(1.02) translateY(-5px);
-      box-shadow: 0 30px 45px rgba(0,0,0,.3);
+      box-shadow: 0 40px 55px rgba(0,0,0,.3);
     }
 
     .journal-icon-modern {
-      width: 70px;
-      height: 70px;
+      width: 80px;
+      height: 80px;
       background: linear-gradient(145deg, #e6f7e6, #d0ecd0);
-      border-radius: 20px;
+      border-radius: 24px;
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-shrink: 0;
     }
 
     .journal-icon-modern svg {
-      width: 40px;
-      height: 40px;
+      width: 45px;
+      height: 45px;
       color: var(--brand-dark);
     }
 
+    .journal-content {
+      flex: 1;
+    }
+
+    /* PDF Container yang lebih besar dan terpusat */
     .pdf-container {
-      margin-top: 15px;
-      border-radius: 16px;
+      margin: 20px 0;
+      border-radius: 20px;
       overflow: hidden;
-      border: 3px solid rgba(255,255,255,.1);
+      border: 4px solid rgba(255,255,255,.1);
       background: #f0f3f7;
       transition: all 0.3s ease;
+      box-shadow: 0 15px 30px rgba(0,0,0,.15);
     }
 
     .pdf-preview {
       width: 100%;
-      height: 180px;
+      height: 350px; /* Tinggi lebih besar untuk preview yang lebih baik */
       border: none;
       background: white;
+    }
+
+    /* Navigasi Panah */
+    .journal-nav-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 50px;
+      height: 50px;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 5px 20px rgba(0,0,0,.2);
+      z-index: 10;
+      transition: all 0.3s ease;
+      border: none;
+      color: var(--brand-dark);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .journal-nav-arrow:hover {
+      background: var(--brand-dark);
+      color: white;
+      transform: translateY(-50%) scale(1.1);
+      box-shadow: 0 8px 25px rgba(0,0,0,.3);
+    }
+
+    .journal-nav-arrow.left {
+      left: 10px;
+    }
+
+    .journal-nav-arrow.right {
+      right: 10px;
+    }
+
+    @media (max-width: 768px) {
+      .journal-container {
+        padding: 0 20px;
+      }
+      
+      .journal-nav-arrow {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+      }
+      
+      .pdf-preview {
+        height: 250px;
+      }
+      
+      .journal-card-modern {
+        padding: 1.5rem;
+        flex-direction: column;
+      }
+      
+      .journal-icon-modern {
+        width: 60px;
+        height: 60px;
+      }
+    }
+
+    /* Indicator dots */
+    .journal-indicators {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 30px;
+    }
+
+    .journal-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.5);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .journal-dot.active {
+      background: white;
+      transform: scale(1.3);
+      box-shadow: 0 0 15px rgba(255,255,255,0.5);
     }
 
     .badge-new {
       position: absolute;
       top: -8px;
-      right: 15px;
+      right: 30px;
       background: linear-gradient(145deg, #ff6b6b, #ee5253);
       color: white;
-      padding: 5px 15px;
+      padding: 5px 20px;
       border-radius: 30px;
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       font-weight: 800;
       box-shadow: 0 5px 15px rgba(238,82,83,.3);
       animation: pulse 2s infinite;
+      z-index: 20;
     }
 
     @keyframes pulse {
@@ -344,6 +456,7 @@
       left: 20px;
       animation: sway 4s ease-in-out infinite;
       transform-origin: bottom center;
+      z-index: 5;
     }
 
     @keyframes sway {
@@ -357,19 +470,6 @@
       padding: 30px 0;
       text-align: center;
     }
-
-    /* RESPONSIVE */
-    @media (max-width: 768px) {
-      .hero-text {
-        font-size: 2.2rem;
-      }
-      .journal-slider {
-        animation: none;
-      }
-      .journal-card-modern {
-        min-width: 280px;
-      }
-    }
   </style>
 </head>
 
@@ -380,7 +480,7 @@
   <div class="container">
     <a class="navbar-brand" href="#">🌿 SmartLiter</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
-      <span class="navbar-toggler-toggler-icon"></span>
+      <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="nav">
       <ul class="navbar-nav ms-auto gap-2">
@@ -513,96 +613,116 @@
   </div>
 </section>
 
-<!-- JURNAL DENGAN PDF PREVIEW LANGSUNG -->
+<!-- JURNAL DENGAN PDF PREVIEW LANGSUNG DAN SCROLL SNAP -->
 <section id="jurnal">
   <div class="container position-relative">
-    <div class="d-flex align-items-center justify-content-between mb-5">
+    <div class="d-flex align-items-center justify-content-between mb-5" style="position: relative;">
       <div>
         <h2 class="text-white fw-bold mb-1" style="font-size: 2.5rem;">📚 Jurnal & Publikasi</h2>
-        <p class="text-white-50 mb-0">Koleksi jurnal agrikultur dan penelitian tanaman</p>
+        <p class="text-white-50 mb-0">Geser atau gunakan panah untuk menjelajahi koleksi jurnal</p>
       </div>
       <span class="badge-new">+3 Update</span>
     </div>
     
-    <!-- JOURNAL SLIDER DENGAN ANIMASI -->
-    <div class="journal-slider">
-      @forelse($journals ?? [] as $index => $j)
-        <div class="journal-card-modern position-relative">
-          <div class="journal-icon-modern">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-              <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 0 4 19.5z" />
-              <path d="M8 6h8M8 10h8M8 14h6" />
-            </svg>
-          </div>
-          <div class="flex-grow-1">
-            <h4 class="fw-bold" style="color: var(--brand-dark);">{{ $j->title ?? 'Smart Farming Vol. '.($index+1) }}</h4>
-            <p class="text-muted small mb-2">{{ $j->summary ?? 'Penelitian terkait optimasi irigasi menggunakan fuzzy logic untuk tanaman hidroponik.' }}</p>
-            
-            <!-- PDF PREVIEW LANGSUNG -->
-            <div class="pdf-container">
-              <iframe src="{{ asset('pdfs/journal-'.($index+1).'.pdf') }}" 
-                      class="pdf-preview"
-                      title="PDF Preview">
-              </iframe>
-            </div>
-            
-            <div class="d-flex justify-content-between align-items-center mt-3">
-              <span class="badge bg-success">PDF Tersedia</span>
-              <a href="{{ route('jurnal.download', $j->id ?? 1) }}" class="btn btn-sm btn-outline-success fw-bold">
-                📥 Unduh PDF
-              </a>
-            </div>
-          </div>
-        </div>
-      @empty
-        <!-- SAMPLE PDF JIKA TIDAK ADA DATA -->
+    <!-- JOURNAL CONTAINER DENGAN NAVIGASI PANAH -->
+    <div class="journal-container">
+      <!-- Navigasi Panah Kiri -->
+      <button class="journal-nav-arrow left" id="prevJournal" aria-label="Jurnal Sebelumnya">‹</button>
+      
+      <!-- Navigasi Panah Kanan -->
+      <button class="journal-nav-arrow right" id="nextJournal" aria-label="Jurnal Selanjutnya">›</button>
+      
+      <!-- JOURNAL WRAPPER DENGAN SCROLL SNAP -->
+      <div class="journal-snap-wrapper" id="journalSnapWrapper">
         @php
           $sampleJournals = [
-            ['title' => 'Evaluasi Sistem Irigasi', 'summary' => 'Analisis efisiensi irigasi tetes pada tanaman cabai.', 'pdf' => 'sample1.pdf'],
-            ['title' => 'Pertahanan Tanah', 'summary' => 'Studi kasus pengaruh kelembaban tanah terhadap pertumbuhan akar.', 'pdf' => 'sample2.pdf'],
-            ['title' => 'Pengaruh Kuantitas Air', 'summary' => 'Optimalisasi pemberian air menggunakan fuzzy logic.', 'pdf' => 'sample3.pdf'],
-            ['title' => 'Smart Greenhouse', 'summary' => 'Implementasi IoT pada greenhouse modern.', 'pdf' => 'sample4.pdf']
+            [
+              'title' => 'Evaluasi Sistem Irigasi Cerdas', 
+              'summary' => 'Analisis efisiensi irigasi tetes pada tanaman cabai menggunakan sensor kelembaban tanah.',
+              'pdf' => 'irigasi-jurnal.pdf',
+              'penulis' => 'Dr. Ahmad Santoso, M.Sc'
+            ],
+            [
+              'title' => 'Pertahanan Tanah & Akar Tanaman', 
+              'summary' => 'Studi kasus pengaruh kelembaban tanah terhadap pertumbuhan akar pada tanaman hidroponik.',
+              'pdf' => 'tanah-jurnal.pdf',
+              'penulis' => 'Prof. Siti Nurhaliza, Ph.D'
+            ],
+            [
+              'title' => 'Pengaruh Kuantitas Air Optimal', 
+              'summary' => 'Optimalisasi pemberian air menggunakan fuzzy logic untuk tanaman tomat di musim kemarau.',
+              'pdf' => 'air-jurnal.pdf',
+              'penulis' => 'Ir. Bambang Wijaya, M.T'
+            ],
+            [
+              'title' => 'Smart Greenhouse IoT', 
+              'summary' => 'Implementasi Internet of Things pada greenhouse modern untuk monitoring tanaman otomatis.',
+              'pdf' => 'greenhouse-jurnal.pdf',
+              'penulis' => 'Dr. Rina Fitriani, M.Kom'
+            ],
+            [
+              'title' => 'Nutrisi Tanaman Hidroponik', 
+              'summary' => 'Studi komparasi pemberian nutrisi AB Mix pada tanaman selada dengan sistem NFT.',
+              'pdf' => 'nutrisi-jurnal.pdf',
+              'penulis' => 'Muhammad Rizki, S.P., M.Si'
+            ]
           ];
         @endphp
         
-        @foreach($sampleJournals as $j)
-          <div class="journal-card-modern">
+        @foreach($sampleJournals as $index => $j)
+          <div class="journal-card-modern" data-index="{{ $index }}">
             <div class="journal-icon-modern">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
                 <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 0 4 19.5z" />
+                <path d="M8 6h8M8 10h8M8 14h6" />
               </svg>
             </div>
-            <div>
-              <h4 class="fw-bold" style="color: var(--brand-dark);">{{ $j['title'] }}</h4>
-              <p class="text-muted small">{{ $j['summary'] }}</p>
+            <div class="journal-content">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <h3 class="fw-bold mb-0" style="color: var(--brand-dark); font-size: 1.8rem;">{{ $j['title'] }}</h3>
+                <span class="badge bg-success ms-2">Vol. {{ $index + 1 }}</span>
+              </div>
+              <p class="text-muted mb-2"><small>Oleh: {{ $j['penulis'] }}</small></p>
+              <p class="mb-3" style="font-size: 1.1rem;">{{ $j['summary'] }}</p>
               
-              <!-- PDF Preview dengan dummy PDF - bisa diganti dengan actual PDF -->
+              <!-- PDF PREVIEW YANG LEBIH BESAR DAN TERPUSAT -->
               <div class="pdf-container">
-                <div style="background: #e9ecef; height: 180px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-direction: column;">
-                  <span style="font-size: 3rem;">📄</span>
-                  <span class="text-muted mt-2">Preview PDF: {{ $j['pdf'] }}</span>
-                </div>
+                <iframe 
+                  src="https://docs.google.com/viewer?url={{ urlencode(asset('pdfs/'.$j['pdf'])) }}&embedded=true" 
+                  class="pdf-preview"
+                  title="PDF Preview - {{ $j['title'] }}"
+                  allowfullscreen
+                  webkitallowfullscreen>
+                </iframe>
               </div>
               
-              <div class="mt-3">
-                <a href="#" class="btn btn-sm btn-success fw-bold w-100" onclick="alert('Demo: PDF akan didownload')">
+              <!-- Fallback jika iframe tidak bisa loading -->
+              <div class="pdf-fallback text-center p-3 bg-light rounded-3 mt-2" style="display: none;">
+                <span style="font-size: 2rem;">📄</span>
+                <p class="mb-2">Preview tidak tersedia, silakan download PDF</p>
+              </div>
+              
+              <div class="d-flex justify-content-between align-items-center mt-4">
+                <div>
+                  <span class="badge bg-info me-2">PDF</span>
+                  <span class="badge bg-warning text-dark">Open Access</span>
+                </div>
+                <a href="#" class="btn btn-success fw-bold px-4 py-2" onclick="alert('Demo: PDF akan didownload - {{ $j['pdf'] }}')">
                   📥 Download PDF
                 </a>
               </div>
             </div>
           </div>
         @endforeach
-      @endforelse
-    </div>
-    
-    <!-- Navigation dots -->
-    <div class="dots-wrap mt-5">
-      <span class="dot active"></span>
-      <span class="dot"></span>
-      <span class="dot"></span>
-      <span class="dot"></span>
+      </div>
+      
+      <!-- INDICATOR DOTS -->
+      <div class="journal-indicators" id="journalIndicators">
+        @foreach($sampleJournals as $index => $j)
+          <span class="journal-dot {{ $index === 0 ? 'active' : '' }}" data-index="{{ $index }}"></span>
+        @endforeach
+      </div>
     </div>
   </div>
 </section>
@@ -624,9 +744,161 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-  // Auto-animate untuk floating leaves
   document.addEventListener('DOMContentLoaded', function() {
-    // Add more dynamic leaves
+    // ========== JOURNAL SCROLL SNAP WITH ARROW NAVIGATION ==========
+    const wrapper = document.getElementById('journalSnapWrapper');
+    const prevBtn = document.getElementById('prevJournal');
+    const nextBtn = document.getElementById('nextJournal');
+    const dots = document.querySelectorAll('.journal-dot');
+    const cards = document.querySelectorAll('.journal-card-modern');
+    
+    if (!wrapper || cards.length === 0) return;
+    
+    let currentIndex = 0;
+    const totalCards = cards.length;
+    
+    // Function to update active dot
+    function updateActiveDot(index) {
+      dots.forEach((dot, i) => {
+        if (i === index) {
+          dot.classList.add('active');
+        } else {
+          dot.classList.remove('active');
+        }
+      });
+    }
+    
+    // Function to scroll to specific card
+    function scrollToCard(index) {
+      if (index < 0 || index >= totalCards) return;
+      
+      const targetCard = cards[index];
+      if (targetCard) {
+        targetCard.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'center'
+        });
+        
+        currentIndex = index;
+        updateActiveDot(currentIndex);
+      }
+    }
+    
+    // Previous button click
+    prevBtn.addEventListener('click', function() {
+      if (currentIndex > 0) {
+        scrollToCard(currentIndex - 1);
+      } else {
+        // Loop to last card
+        scrollToCard(totalCards - 1);
+      }
+    });
+    
+    // Next button click
+    nextBtn.addEventListener('click', function() {
+      if (currentIndex < totalCards - 1) {
+        scrollToCard(currentIndex + 1);
+      } else {
+        // Loop to first card
+        scrollToCard(0);
+      }
+    });
+    
+    // Dot indicators click
+    dots.forEach((dot, index) => {
+      dot.addEventListener('click', function() {
+        scrollToCard(index);
+      });
+    });
+    
+    // Detect scroll end to update active dot
+    let scrollTimeout;
+    wrapper.addEventListener('scroll', function() {
+      clearTimeout(scrollTimeout);
+      
+      scrollTimeout = setTimeout(function() {
+        // Find which card is most visible in the center
+        const wrapperRect = wrapper.getBoundingClientRect();
+        const wrapperCenter = wrapperRect.left + wrapperRect.width / 2;
+        
+        let closestIndex = 0;
+        let closestDistance = Infinity;
+        
+        cards.forEach((card, index) => {
+          const cardRect = card.getBoundingClientRect();
+          const cardCenter = cardRect.left + cardRect.width / 2;
+          const distance = Math.abs(cardCenter - wrapperCenter);
+          
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestIndex = index;
+          }
+        });
+        
+        if (closestIndex !== currentIndex) {
+          currentIndex = closestIndex;
+          updateActiveDot(currentIndex);
+        }
+      }, 100);
+    });
+    
+    // Keyboard navigation (left/right arrows)
+    document.addEventListener('keydown', function(e) {
+      // Only if jurnal section is in view
+      const jurnalSection = document.getElementById('jurnal');
+      const rect = jurnalSection.getBoundingClientRect();
+      
+      if (rect.top < window.innerHeight && rect.bottom > 0) {
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          prevBtn.click();
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          nextBtn.click();
+        }
+      }
+    });
+    
+    // Touch swipe support for mobile (optional enhancement)
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    wrapper.addEventListener('touchstart', function(e) {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    
+    wrapper.addEventListener('touchend', function(e) {
+      touchEndX = e.changedTouches[0].screenX;
+      handleSwipe();
+    }, { passive: true });
+    
+    function handleSwipe() {
+      const swipeThreshold = 50;
+      if (touchEndX < touchStartX - swipeThreshold) {
+        // Swipe left -> next
+        nextBtn.click();
+      } else if (touchEndX > touchStartX + swipeThreshold) {
+        // Swipe right -> prev
+        prevBtn.click();
+      }
+    }
+    
+    // PDF Fallback handling
+    const pdfFrames = document.querySelectorAll('.pdf-preview');
+    pdfFrames.forEach(frame => {
+      frame.addEventListener('error', function() {
+        // If iframe fails to load, show fallback
+        const parent = this.parentNode;
+        const fallback = parent.nextElementSibling;
+        if (fallback && fallback.classList.contains('pdf-fallback')) {
+          this.style.display = 'none';
+          fallback.style.display = 'block';
+        }
+      });
+    });
+    
+    // Auto-animate untuk floating leaves
     setInterval(() => {
       const leaves = document.querySelectorAll('.leaf');
       leaves.forEach(leaf => {
@@ -634,18 +906,18 @@
         leaf.offsetHeight;
         leaf.style.animation = 'floatLeaf 20s infinite linear';
       });
-    }, 30000); // reset animation every 30 seconds
-  });
-  
-  // Navbar scroll effect
-  window.addEventListener('scroll', function() {
-    const navbar = document.querySelector('.navbar');
-    if (window.scrollY > 50) {
-      navbar.style.background = 'rgba(26, 71, 42, 0.98)';
-      navbar.style.backdropFilter = 'blur(15px)';
-    } else {
-      navbar.style.background = 'rgba(47, 143, 87, 0.95)';
-    }
+    }, 30000);
+    
+    // Navbar scroll effect
+    window.addEventListener('scroll', function() {
+      const navbar = document.querySelector('.navbar');
+      if (window.scrollY > 50) {
+        navbar.style.background = 'rgba(26, 71, 42, 0.98)';
+        navbar.style.backdropFilter = 'blur(15px)';
+      } else {
+        navbar.style.background = 'rgba(47, 143, 87, 0.95)';
+      }
+    });
   });
 </script>
 
