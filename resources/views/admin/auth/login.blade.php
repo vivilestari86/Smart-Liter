@@ -44,7 +44,7 @@
 
         .login-card{
             width: min(440px, 92vw);
-            background: rgba(255,255,255,.95);
+            background: #ffffff;
             border-radius: 18px;
             padding: 28px 30px 24px;  /* lebih lega kiri kanan */
             box-shadow: 0 18px 60px rgba(0,0,0,.25);

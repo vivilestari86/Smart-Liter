@@ -93,7 +93,7 @@
             <div class="sidebar-bottom">
                 <form method="POST" action="{{ route('admin.logout') }}">
                     @csrf
-                    <button class="sidebar-login" type="submit">Logout</button>
+                    <button class="sidebar-login" type="submit">Keluar</button>
                 </form>
             </div>
         </aside>

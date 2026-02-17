@@ -220,11 +220,7 @@
       <p class="sl-subtitle">Form konfigurasi fuzzy untuk Kelembapan Tanah.</p>
     </div>
 
-    {{-- kanan atas (opsional) --}}
-    <div style="display:flex; gap:10px; align-items:center;">
-      <button type="button" class="btn btn-light" style="border-radius:12px;">🔔</button>
-      <button type="button" class="btn btn-light" style="border-radius:12px;">👤</button>
-    </div>
+    
   </div>
 
   <div class="sl-panel">
