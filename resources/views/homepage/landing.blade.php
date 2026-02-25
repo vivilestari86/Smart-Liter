@@ -634,42 +634,7 @@
       
       <!-- JOURNAL WRAPPER DENGAN SCROLL SNAP -->
       <div class="journal-snap-wrapper" id="journalSnapWrapper">
-        @php
-          $sampleJournals = [
-            [
-              'title' => 'Evaluasi Sistem Irigasi Cerdas', 
-              'summary' => 'Analisis efisiensi irigasi tetes pada tanaman cabai menggunakan sensor kelembaban tanah.',
-              'pdf' => 'irigasi-jurnal.pdf',
-              'penulis' => 'Dr. Ahmad Santoso, M.Sc'
-            ],
-            [
-              'title' => 'Pertahanan Tanah & Akar Tanaman', 
-              'summary' => 'Studi kasus pengaruh kelembaban tanah terhadap pertumbuhan akar pada tanaman hidroponik.',
-              'pdf' => 'tanah-jurnal.pdf',
-              'penulis' => 'Prof. Siti Nurhaliza, Ph.D'
-            ],
-            [
-              'title' => 'Pengaruh Kuantitas Air Optimal', 
-              'summary' => 'Optimalisasi pemberian air menggunakan fuzzy logic untuk tanaman tomat di musim kemarau.',
-              'pdf' => 'air-jurnal.pdf',
-              'penulis' => 'Ir. Bambang Wijaya, M.T'
-            ],
-            [
-              'title' => 'Smart Greenhouse IoT', 
-              'summary' => 'Implementasi Internet of Things pada greenhouse modern untuk monitoring tanaman otomatis.',
-              'pdf' => 'greenhouse-jurnal.pdf',
-              'penulis' => 'Dr. Rina Fitriani, M.Kom'
-            ],
-            [
-              'title' => 'Nutrisi Tanaman Hidroponik', 
-              'summary' => 'Studi komparasi pemberian nutrisi AB Mix pada tanaman selada dengan sistem NFT.',
-              'pdf' => 'nutrisi-jurnal.pdf',
-              'penulis' => 'Muhammad Rizki, S.P., M.Si'
-            ]
-          ];
-        @endphp
-        
-        @foreach($sampleJournals as $index => $j)
+        @forelse($journals as $index => $j)
           <div class="journal-card-modern" data-index="{{ $index }}">
             <div class="journal-icon-modern">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -679,40 +644,61 @@
               </svg>
             </div>
             <div class="journal-content">
-        
-              <p class="text-muted mb-2"><small>Oleh: {{ $j['penulis'] }}</small></p>
-              <p class="mb-3" style="font-size: 1.1rem;">{{ $j['summary'] }}</p>
+              <h4 class="fw-bold mb-1">{{ $j->title }}</h4>
+              <p class="text-muted mb-2"><small>Oleh: {{ $j->author PDF '-' }}</small></p>
+              <p class="mb-3" style="font-size: 1.1rem;">{{ $j->summary }}</p>
               
               <!-- PDF PREVIEW YANG LEBIH BESAR DAN TERPUSAT -->
               <div class="pdf-container">
-                <iframe 
-                  src="https://docs.google.com/viewer?url={{ urlencode(asset('pdfs/'.$j['pdf'])) }}&embedded=true" 
-                  class="pdf-preview"
-                  title="PDF Preview - {{ $j['title'] }}"
-                  allowfullscreen
-                  webkitallowfullscreen>
-                </iframe>
+                @php
+                  $pdfUrl = $j->pdf_path ? url(Storage::disk('public')->url($j->pdf_path)) : null;
+                @endphp
+                @if($pdfUrl)
+                  <iframe 
+                    src="{{ $pdfUrl }}" 
+                    class="pdf-preview"
+                    title="PDF Preview - {{ $j->title }}"
+                    allowfullscreen
+                    webkitallowfullscreen>
+                  </iframe>
+                @else
+                  <div class="pdf-fallback text-center p-3 bg-light rounded-3 mt-2">
+                    <span style="font-size: 2rem;">PDF</span>
+                    <p class="mb-2">Preview tidak tersedia</p>
+                  </div>
+                @endif
               </div>
               
               <!-- Fallback jika iframe tidak bisa loading -->
               <div class="pdf-fallback text-center p-3 bg-light rounded-3 mt-2" style="display: none;">
-                <span style="font-size: 2rem;">📄</span>
+                <span style="font-size: 2rem;">PDF</span>
                 <p class="mb-2">Preview tidak tersedia, silakan download PDF</p>
               </div>
               
               <div class="d-flex justify-content-between align-items-center mt-4">
-                <a href="#" class="btn btn-success fw-bold px-4 py-2" onclick="alert('Demo: PDF akan didownload - {{ $j['pdf'] }}')">
-                  📥 Download PDF
-                </a>
+                @if($j->pdf_path)
+                  <a href="{{ route('jurnal.download', $j) }}" class="btn btn-success fw-bold px-4 py-2">
+                    Download PDF
+                  </a>
+                @else
+                  <span class="text-muted">PDF belum tersedia</span>
+                @endif
               </div>
             </div>
           </div>
-        @endforeach
+        @empty
+          <div class="journal-card-modern" data-index="0">
+            <div class="journal-content">
+              <h4 class="fw-bold mb-2">Belum ada jurnal</h4>
+              <p class="mb-0">Silakan tambah jurnal dari panel admin.</p>
+            </div>
+          </div>
+        @endforelse
       </div>
       
       <!-- INDICATOR DOTS -->
       <div class="journal-indicators" id="journalIndicators">
-        @foreach($sampleJournals as $index => $j)
+        @foreach($journals as $index => $j)
           <span class="journal-dot {{ $index === 0 ? 'active' : '' }}" data-index="{{ $index }}"></span>
         @endforeach
       </div>

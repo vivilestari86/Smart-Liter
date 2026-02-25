@@ -7,6 +7,7 @@
 
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @stack('styles')
 </head>
 
 <body>
