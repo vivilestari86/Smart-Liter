@@ -124,7 +124,7 @@
                     <td>{{ $row->suhu !== null ? rtrim(rtrim(number_format($row->suhu,2,'.',''), '0'), '.') . ' °C' : '-' }}</td>
                     <td>{{ $row->kelembapan_udara !== null ? rtrim(rtrim(number_format($row->kelembapan_udara,2,'.',''), '0'), '.') . ' %' : '-' }}</td>
                     <td>{{ $row->kelembapan_tanah !== null ? rtrim(rtrim(number_format($row->kelembapan_tanah,2,'.',''), '0'), '.') . ' %' : '-' }}</td>
-                    <td>{{ $row->umur_hari !== null ? $row->umur_hari.' Hari' : '-' }}</td>
+                    <td>{{ $row->usia_tanaman !== null ? $row->usia_tanaman.' Hari' : '-' }}</td>
                     <td>{{ $row->output_liter !== null ? rtrim(rtrim(number_format($row->output_liter,2,'.',''), '0'), '.') . ' Liter' : '-' }}</td>
                     <td>{{ $row->kategori ? ucfirst($row->kategori) : '-' }}</td>
                     <td class="action">
@@ -136,10 +136,10 @@
                             data-suhu="{{ $row->suhu }}"
                             data-ku="{{ $row->kelembapan_udara }}"
                             data-kt="{{ $row->kelembapan_tanah }}"
-                            data-umur="{{ $row->umur_hari }}"
+                            data-umur="{{ $row->usia_tanaman }}"
                             data-output="{{ $row->output_liter }}"
                             data-kategori="{{ $row->kategori }}"
-                            data-deskripsi="{{ e($row->deskripsi ?? '-') }}"
+                            data-deskripsi='@json($row->deskripsi ?? "-")'
                             title="Lihat Deskripsi"
                         >👁</button>
                     </td>
@@ -164,7 +164,7 @@
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <div class="modal-head">
             <div>
-                <div id="modalTitle" style="font-weight:900; font-size:16px;">Detail Perhitungan</div>
+                <div id="modalTitle" style="font-weight:900; font-size:16px;">Detail Riwayat Perhitungan</div>
                 <div id="modalSub" style="font-size:12px; opacity:.8; margin-top:2px;"></div>
             </div>
             <button class="modal-x" id="modalX" type="button">✕</button>
@@ -175,7 +175,7 @@
                 <div><b>Suhu:</b> <span id="mSuhu"></span></div>
                 <div><b>Kelembapan Udara:</b> <span id="mKU"></span></div>
                 <div><b>Kelembapan Tanah:</b> <span id="mKT"></span></div>
-                <div><b>Umur:</b> <span id="mUmur"></span></div>
+                <div><b>Usia Tanaman:</b> <span id="mUmur"></span></div>
                 <div><b>Output:</b> <span id="mOutput"></span></div>
                 <div><b>Kategori:</b> <span id="mKategori"></span></div>
             </div>
@@ -376,5 +376,44 @@
       });
     }
   </script>
-</script>
+    </script>
+        <script>
+        document.addEventListener('DOMContentLoaded', () => {
+        const modal = document.getElementById('detailModal');
+        const closeBackdrop = document.getElementById('modalClose');
+        const closeX = document.getElementById('modalX');
+
+        const el = (id) => document.getElementById(id);
+
+        function openModalFromButton(btn){
+            el('modalSub').textContent = `${btn.dataset.ip || '-'} • ${btn.dataset.tanggal || '-'}`;
+            el('mSuhu').textContent = btn.dataset.suhu ? btn.dataset.suhu + ' °C' : '-';
+            el('mKU').textContent = btn.dataset.ku ? btn.dataset.ku + ' %' : '-';
+            el('mKT').textContent = btn.dataset.kt ? btn.dataset.kt + ' %' : '-';
+            el('mUmur').textContent = btn.dataset.umur ? btn.dataset.umur + ' Hari' : '-';
+            el('mOutput').textContent = btn.dataset.output ? btn.dataset.output + ' Liter' : '-';
+            el('mKategori').textContent = btn.dataset.kategori || '-';
+            el('mDeskripsi').textContent = btn.dataset.deskripsi || '-';
+
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeModal(){
+            modal.classList.remove('open');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.js-open-detail');
+            if (btn) return openModalFromButton(btn);
+
+            if (e.target === closeBackdrop || e.target === closeX) return closeModal();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+        });
+        </script>
 @endsection

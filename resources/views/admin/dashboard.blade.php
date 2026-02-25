@@ -112,20 +112,50 @@
         @forelse($latest as $row)
             <tr>
                 <td>{{ $row->ip ?? '-' }}</td>
-                <td>{{ $row->created_at?->format('d/m/Y') ?? '-' }}</td>
-                <td>{{ $row->suhu ?? '-' }}</td>
-                <td>{{ $row->kelembapan_udara ?? '-' }}</td>
-                <td>{{ $row->kelembapan_tanah ?? '-' }}</td>
-                <td>{{ $row->umur_hari ?? '-' }}</td>
-                <td>{{ $row->output_liter ?? '-' }}</td>
-                <td>{{ $row->kategori ?? '-' }}</td>
+    <td>{{ $row->created_at?->format('d/m/Y') ?? '-' }}</td>
+
+    <td>
+        {{ $row->suhu !== null
+            ? rtrim(rtrim(number_format($row->suhu,2,'.',''), '0'), '.') . ' °C'
+            : '-' }}
+    </td>
+
+    <td>
+        {{ $row->kelembapan_udara !== null
+            ? rtrim(rtrim(number_format($row->kelembapan_udara,2,'.',''), '0'), '.') . ' %'
+            : '-' }}
+    </td>
+
+    <td>
+        {{ $row->kelembapan_tanah !== null
+            ? rtrim(rtrim(number_format($row->kelembapan_tanah,2,'.',''), '0'), '.') . ' %'
+            : '-' }}
+    </td>
+
+    <td>{{ $row->usia_tanaman !== null ? $row->usia_tanaman.' Hari' : '-' }}</td>
+
+    <td>
+        {{ $row->output_liter !== null
+            ? rtrim(rtrim(number_format($row->output_liter,2,'.',''), '0'), '.') . ' Liter'
+            : '-' }}
+    </td>
+
+    <td>{{ $row->kategori ? ucfirst($row->kategori) : '-' }}</td>
+
                 <td class="action">
                     <button class="icon-eye js-open-detail"
                         type="button"
                         data-ip="{{ $row->ip }}"
                         data-tanggal="{{ $row->created_at?->format('d/m/Y H:i') }}"
-                        data-deskripsi="{{ e($row->deskripsi ?? '-') }}"
-                        title="Detail">👁️</button>
+                        data-suhu="{{ $row->suhu }}"
+                        data-ku="{{ $row->kelembapan_udara }}"
+                        data-kt="{{ $row->kelembapan_tanah }}"
+                        data-umur="{{ $row->usia_tanaman }}"
+                        data-output="{{ $row->output_liter }}"
+                        data-kategori="{{ $row->kategori }}"
+                        data-deskripsi='@json($row->deskripsi ?? "-")'
+                        title="Detail"
+                    >👁️</button>
                 </td>
             </tr>
         @empty
@@ -139,21 +169,34 @@
     </table>
 </div>
 
-{{-- Modal detail sederhana --}}
+{{-- Modal detail (samakan seperti riwayat) --}}
 <div class="modal" id="detailModal" aria-hidden="true">
-    <div class="modal-backdrop" id="modalClose"></div>
-    <div class="modal-card">
-        <div class="modal-head">
-            <div>
-                <div style="font-weight:900;">Deskripsi Perhitungan</div>
-                <div id="modalSub" style="font-size:12px; opacity:.8;"></div>
-            </div>
-            <button class="modal-x" id="modalX" type="button">✕</button>
-        </div>
-        <div class="modal-body">
-            <div class="desc-box" id="mDeskripsi"></div>
-        </div>
+  <div class="modal-backdrop" id="modalClose"></div>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-head">
+      <div>
+        <div id="modalTitle" style="font-weight:900; font-size:16px;">Detail Riwayat Perhitungan</div>
+        <div id="modalSub" style="font-size:12px; opacity:.8; margin-top:2px;"></div>
+      </div>
+      <button class="modal-x" id="modalX" type="button">✕</button>
     </div>
+
+    <div class="modal-body">
+      <div class="modal-grid">
+        <div><b>Suhu:</b> <span id="mSuhu"></span></div>
+        <div><b>Kelembapan Udara:</b> <span id="mKU"></span></div>
+        <div><b>Kelembapan Tanah:</b> <span id="mKT"></span></div>
+        <div><b>Usia Tanaman:</b> <span id="mUmur"></span></div>
+        <div><b>Output:</b> <span id="mOutput"></span></div>
+        <div><b>Kategori:</b> <span id="mKategori"></span></div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <div style="font-weight:800; margin-bottom:6px;">Deskripsi</div>
+        <div class="desc-box" id="mDeskripsi"></div>
+      </div>
+    </div>
+  </div>
 </div>
 @endsection
 
@@ -213,28 +256,51 @@
         document.getElementById('outTua').value = json.tua ?? '-';
     });
 
-    // ===== Modal detail riwayat =====
-    const modal = document.getElementById('detailModal');
-    const closeBackdrop = document.getElementById('modalClose');
-    const closeX = document.getElementById('modalX');
-    const mDeskripsi = document.getElementById('mDeskripsi');
-    const modalSub = document.getElementById('modalSub');
+    // ===== Modal detail (samakan seperti riwayat) =====
+        const modal = document.getElementById('detailModal');
+        const closeBackdrop = document.getElementById('modalClose');
+        const closeX = document.getElementById('modalX');
 
-    document.querySelectorAll('.js-open-detail').forEach(btn => {
-        btn.addEventListener('click', () => {
-            modalSub.textContent = `${btn.dataset.ip || '-'} • ${btn.dataset.tanggal || '-'}`;
-            mDeskripsi.textContent = btn.dataset.deskripsi || '-';
-            modal.classList.add('open');
-            modal.setAttribute('aria-hidden','false');
-        });
-    });
+        const modalSub = document.getElementById('modalSub');
+        const mSuhu = document.getElementById('mSuhu');
+        const mKU = document.getElementById('mKU');
+        const mKT = document.getElementById('mKT');
+        const mUmur = document.getElementById('mUmur');
+        const mOutput = document.getElementById('mOutput');
+        const mKategori = document.getElementById('mKategori');
+        const mDeskripsi = document.getElementById('mDeskripsi');
 
-    const closeModal = () => {
+        const openModal = (btn) => {
+        modalSub.textContent = `${btn.dataset.ip || '-'} • ${btn.dataset.tanggal || '-'}`;
+
+        mSuhu.textContent = btn.dataset.suhu ? `${btn.dataset.suhu} °C` : '-';
+        mKU.textContent = btn.dataset.ku ? `${btn.dataset.ku} %` : '-';
+        mKT.textContent = btn.dataset.kt ? `${btn.dataset.kt} %` : '-';
+        mUmur.textContent = btn.dataset.umur ? `${btn.dataset.umur} Hari` : '-';
+        mOutput.textContent = btn.dataset.output ? `${btn.dataset.output} Liter` : '-';
+        mKategori.textContent = btn.dataset.kategori || '-';
+        mDeskripsi.textContent = btn.dataset.deskripsi || '-';
+
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden','false');
+        };
+
+        const closeModal = () => {
         modal.classList.remove('open');
         modal.setAttribute('aria-hidden','true');
-    };
-    closeBackdrop?.addEventListener('click', closeModal);
-    closeX?.addEventListener('click', closeModal);
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
-</script>
+        };
+
+        // event delegation (lebih aman)
+        document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.js-open-detail');
+        if (btn) return openModal(btn);
+
+        if (e.target === closeBackdrop || e.target === closeX) return closeModal();
+        });
+
+        document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeModal();
+        });
+        </script>
+
 @endpush

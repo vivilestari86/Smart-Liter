@@ -116,7 +116,11 @@ class RiwayatController extends Controller
 
         $nowYear = Carbon::now()->year;
         $yearsFallback = collect(range($nowYear, $nowYear - 5)); // contoh: 2026..2021
-        $years = $yearsFromDb->isNotEmpty() ? $yearsFromDb : $yearsFallback;
+        $years = $yearsFromDb
+            ->merge($yearsFallback)
+            ->unique()
+            ->sortDesc()
+            ->values();
 
         // ===== Dropdown Kategori (dari data, kalau kosong fallback default) =====
         $kategorisFromDb = CalculationHistory::select('kategori')
@@ -126,8 +130,13 @@ class RiwayatController extends Controller
             ->orderBy('kategori')
             ->pluck('kategori');
 
-        $kategorisFallback = collect(['mati', 'sedikit', 'banyak']);
-        $kategoris = $kategorisFromDb->isNotEmpty() ? $kategorisFromDb : $kategorisFallback;
+        $kategorisDefault = collect(['mati', 'sedikit', 'banyak']);
+
+        $kategoris = $kategorisFromDb
+            ->map(fn($v) => strtolower(trim($v)))
+            ->merge($kategorisDefault)
+            ->unique()
+            ->values();
 
         return view('admin.riwayat.index', compact(
             'histories', 'years', 'kategoris', 'year', 'month', 'kategori',

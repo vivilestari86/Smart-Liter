@@ -24,7 +24,7 @@ class DashboardController extends Controller
         ];
 
         // Riwayat terbaru (ambil 8 terakhir)
-        $latest = CalculationHistory::latest()->take(8)->get();
+        $latest = CalculationHistory::latest('created_at')->take(8)->get();
 
         return view('admin.dashboard', compact('pie', 'latest'));
     }
