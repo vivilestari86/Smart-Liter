@@ -678,3 +678,222 @@ body{
 .modal-body{ padding:14px; }
 .modal-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px 14px; font-size:13px; }
 .desc-box{ background:#f7f7fb; border:1px solid rgba(0,0,0,.08); border-radius:12px; padding:12px; white-space:pre-wrap; font-size:13px; }
+
+/* ===== Dashboard Responsive ===== */
+.dashboard-page{
+  display:flex;
+  flex-direction:column;
+  gap: 16px;
+}
+
+.dashboard-page .cards{
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 0;
+}
+
+.dashboard-page .grid-3{
+  grid-template-columns: minmax(240px, 1fr) minmax(420px, 1.8fr) minmax(280px, 1fr);
+  grid-template-areas: "output line uji";
+  gap: 16px;
+  margin-bottom: 0;
+  align-items: stretch;
+}
+
+.dashboard-page .panel{
+  height: 100%;
+}
+
+.dashboard-page .panel-output{ grid-area: output; }
+.dashboard-page .panel-line{ grid-area: line; }
+.dashboard-page .panel-uji{ grid-area: uji; }
+.dashboard-page .panel-output,
+.dashboard-page .panel-output .panel-body,
+.dashboard-page .panel-output .pie-wrap{
+  min-width: 0;
+  overflow: hidden;
+}
+
+.dashboard-page .panel-title.right{
+  text-align: left;
+  padding-right: 0;
+}
+
+.dashboard-page .panel-body{
+  height: calc(100% - 26px);
+}
+
+.dashboard-page .pie-wrap{
+  display:grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  height: 100%;
+}
+
+.dashboard-page .panel-output .chart-box{
+  width: min(100%, 240px);
+  max-width: 100%;
+  aspect-ratio: 1 / 1;
+  height: auto;
+  margin-inline: auto;
+  position: relative;
+  overflow: hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.dashboard-page .panel-output .chart-box canvas{
+  width: 100% !important;
+  height: 100% !important;
+  display:block;
+}
+
+.dashboard-page .line-box{
+  height: clamp(230px, 32vh, 320px);
+}
+
+.dashboard-page .panel-line .panel-body{
+  min-width: 0;
+}
+
+.dashboard-page .panel-line .line-box{
+  width: 100%;
+}
+
+.dashboard-page .uji{
+  justify-content: flex-start;
+}
+
+.dashboard-page .table-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+
+.dashboard-page .table-title{
+  font-weight:900;
+}
+
+.dashboard-page .table-more-link{
+  font-weight:800;
+  text-decoration:none;
+}
+
+.dashboard-page .table-scroll{
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.dashboard-page .table{
+  min-width: 980px;
+}
+
+@media (max-width: 1400px){
+  .dashboard-page .cards{
+    grid-template-columns: repeat(2, minmax(180px, 1fr));
+  }
+
+  .dashboard-page .grid-3{
+    grid-template-columns: minmax(280px, 1fr) minmax(360px, 1.45fr);
+    grid-template-areas:
+      "output line"
+      "uji line";
+  }
+
+  .dashboard-page .line-box{
+    height: 260px;
+  }
+}
+
+@media (max-width: 1100px){
+  .dashboard-page .grid-3{
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "line"
+      "output"
+      "uji";
+  }
+
+  .dashboard-page .panel-body{
+    height: auto;
+  }
+
+  .dashboard-page .chart-box,
+  .dashboard-page .line-box{
+    height: 240px;
+  }
+
+  .dashboard-page .pie-wrap{
+    grid-template-columns: 1fr;
+    justify-items:center;
+    text-align:center;
+  }
+
+  .dashboard-page .panel-output .chart-box{
+    width: min(100%, 220px);
+    aspect-ratio: 1 / 1;
+    height: auto;
+  }
+
+  .dashboard-page .legend{
+    min-width: auto;
+    display:flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding-left: 0;
+  }
+
+  .dashboard-page .legend-item{
+    margin: 0;
+  }
+
+  .dashboard-page .dots{
+    display: none;
+  }
+}
+
+@media (max-width: 768px){
+  .dashboard-page .cards{
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-page .metric{
+    padding: 16px 12px;
+  }
+
+  .dashboard-page .uji-row{
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dashboard-page .btn-test{
+    width: 100%;
+  }
+
+  .dashboard-page .uji-row.small{
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .dashboard-page .input.mini{
+    width: 84px;
+  }
+
+  .dashboard-page .panel-output .chart-box{
+    width: min(100%, 200px);
+  }
+}
+
+@media (max-width: 760px){
+  .modal-grid{
+    grid-template-columns: 1fr;
+  }
+}

@@ -2,6 +2,7 @@
 @section('title', 'Admin Dashboard')
 
 @section('content')
+<div class="dashboard-page">
 <div class="cards">
     <div class="card metric">
         <div class="metric-icon">🌡️</div>
@@ -30,7 +31,7 @@
 
 <div class="grid-3">
     {{-- Pie chart --}}
-    <div class="card panel">
+    <div class="card panel panel-output">
         <div class="panel-title">Distributor Output</div>
         <div class="panel-body pie-wrap">
             <div class="legend">
@@ -45,7 +46,7 @@
     </div>
 
     {{-- Line chart (contoh dulu) --}}
-    <div class="card panel span-2">
+    <div class="card panel span-2 panel-line">
         <div class="panel-title center">UJI TANAMAN</div>
         <div class="panel-body">
             <div class="line-box">
@@ -55,7 +56,7 @@
     </div>
 
     {{-- Uji umur dinamis --}}
-    <div class="card panel">
+    <div class="card panel panel-uji">
         <div class="panel-title right">Uji Usia Tanaman</div>
         <div class="panel-body">
             <div class="uji">
@@ -89,11 +90,12 @@
 
 {{-- Riwayat terbaru (dinamis, sumber sama dengan halaman riwayat) --}}
 <div class="card table-card">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <div style="font-weight:900;">Riwayat Perhitungan Terbaru</div>
-        <a href="{{ route('admin.riwayat.index') }}" style="font-weight:800; text-decoration:none;">Lihat semua →</a>
+    <div class="table-head">
+        <div class="table-title">Riwayat Perhitungan Terbaru</div>
+        <a href="{{ route('admin.riwayat.index') }}" class="table-more-link">Lihat semua →</a>
     </div>
 
+    <div class="table-scroll">
     <table class="table">
         <thead>
             <tr>
@@ -167,7 +169,9 @@
         @endforelse
         </tbody>
     </table>
+    </div>
 </div>
+ </div>
 
 {{-- Modal detail (samakan seperti riwayat) --}}
 <div class="modal" id="detailModal" aria-hidden="true">
@@ -205,34 +209,119 @@
 <script>
     // ===== PIE dari PHP (aman walau kosong) =====
     const pieData = @json([$pie['mati'], $pie['sedikit'], $pie['banyak']]);
+    const usiaChartData = @json($usiaChartData ?? []);
 
 
     const pieCtx = document.getElementById('pieChart');
     if (pieCtx) {
+        const totalPie = pieData.reduce((sum, val) => sum + Number(val || 0), 0);
+        const hasPieData = totalPie > 0;
+
         new Chart(pieCtx, {
-            type: 'pie',
+            type: 'doughnut',
             data: {
-                labels: ['Mati', 'Sedikit', 'Banyak'],
-                datasets: [{ data: pieData }]
+                labels: hasPieData ? ['Mati', 'Sedikit', 'Banyak'] : ['Belum ada data'],
+                datasets: [{
+                    data: hasPieData ? pieData : [1],
+                    backgroundColor: hasPieData
+                        ? ['#7a3b11', '#c67d46', '#7fd3ff']
+                        : ['#d1d5db'],
+                    borderColor: '#ffffff',
+                    borderWidth: 2,
+                }]
             },
-            options: { plugins: { legend: { display: false } } }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '56%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        enabled: hasPieData,
+                    },
+                },
+            }
         });
     }
 
-    // ===== LINE (sementara contoh) =====
+    // ===== LINE (sinkron dengan konfigurasi fuzzy usia tanaman) =====
     const lineCtx = document.getElementById('lineChart');
     if (lineCtx) {
+        const palette = ['#3498db', '#f45b85', '#f39c34', '#16a085', '#8e44ad'];
+        const categories = Array.isArray(usiaChartData) ? usiaChartData : [];
+
+        const lineDatasets = categories.map((cat, idx) => ({
+            label: cat.name,
+            data: [
+                { x: Number(cat.titik_a_x), y: Number(cat.titik_a_y) },
+                { x: Number(cat.titik_b_x), y: Number(cat.titik_b_y) },
+                { x: Number(cat.titik_c_x), y: Number(cat.titik_c_y) },
+                { x: Number(cat.titik_d_x), y: Number(cat.titik_d_y) },
+            ],
+            borderColor: palette[idx % palette.length],
+            backgroundColor: palette[idx % palette.length],
+            fill: false,
+            tension: 0,
+            borderWidth: 3,
+            pointRadius: 2,
+            pointHoverRadius: 4,
+        }));
+
+        const allX = categories.flatMap((cat) => [
+            Number(cat.titik_a_x),
+            Number(cat.titik_b_x),
+            Number(cat.titik_c_x),
+            Number(cat.titik_d_x),
+        ]).filter((x) => Number.isFinite(x));
+
+        const minXRaw = allX.length ? Math.min(...allX) : 0;
+        const maxXRaw = allX.length ? Math.max(...allX) : 100;
+        const span = Math.max(1, maxXRaw - minXRaw);
+        const padding = span * 0.08;
+        const minX = minXRaw - padding;
+        const maxX = maxXRaw + padding;
+
         new Chart(lineCtx, {
             type: 'line',
             data: {
-                labels: ['0','10','20','30','40','50','60','70','80','90','100'],
-                datasets: [
-                    { label: 'Muda', data: [0,20,40,70,70,70,70,60,30,10,0], tension: 0.3 },
-                    { label: 'Dewasa', data: [0,0,10,30,60,60,60,40,20,0,0], tension: 0.3 },
-                    { label: 'Tua', data: [0,0,0,5,10,10,10,20,40,70,90], tension: 0.3 }
-                ]
+                datasets: lineDatasets
             },
-            options: { plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                parsing: false,
+                plugins: {
+                    legend: {
+                        position: window.matchMedia('(max-width: 768px)').matches ? 'bottom' : 'top'
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'linear',
+                        min: minX,
+                        max: maxX,
+                        title: {
+                            display: true,
+                            text: 'Usia Tanaman (Hari)'
+                        },
+                        ticks: {
+                            maxTicksLimit: window.matchMedia('(max-width: 768px)').matches ? 6 : 11
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        min: 0,
+                        max: 1,
+                        ticks: {
+                            stepSize: 0.1
+                        },
+                        title: {
+                            display: true,
+                            text: 'Derajat Keanggotaan'
+                        }
+                    }
+                }
+            }
         });
     }
 
@@ -251,9 +340,36 @@
     });
 
         const json = await res.json();
-        document.getElementById('outMuda').value = json.muda ?? '-';
-        document.getElementById('outDewasa').value = json.dewasa ?? '-';
-        document.getElementById('outTua').value = json.tua ?? '-';
+        const outMuda = document.getElementById('outMuda');
+        const outDewasa = document.getElementById('outDewasa');
+        const outTua = document.getElementById('outTua');
+
+        outMuda.value = '-';
+        outDewasa.value = '-';
+        outTua.value = '-';
+
+        const outputMap = {
+            muda: outMuda,
+            dewasa: outDewasa,
+            tua: outTua,
+        };
+
+        if (Array.isArray(json.memberships)) {
+            json.memberships.forEach((item) => {
+                const key = String(item.name || '')
+                    .trim()
+                    .toLowerCase()
+                    .replace(/\s+/g, '_');
+
+                if (outputMap[key]) {
+                    outputMap[key].value = item.value ?? '-';
+                }
+            });
+        } else {
+            outMuda.value = json.muda ?? '-';
+            outDewasa.value = json.dewasa ?? '-';
+            outTua.value = json.tua ?? '-';
+        }
     });
 
     // ===== Modal detail (samakan seperti riwayat) =====

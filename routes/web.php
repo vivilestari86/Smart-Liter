@@ -25,12 +25,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/fuzzy/kelembapan-udara', [FuzzyController::class, 'kelembapanUdara'])->name('fuzzy.k_udara');
         Route::get('/fuzzy/kelembapan-tanah', [FuzzyController::class, 'kelembapanTanah'])->name('fuzzy.k_tanah');
         Route::get('/fuzzy/usia-tanaman', [FuzzyController::class, 'usiaTanaman'])->name('fuzzy.usia');
+        Route::get('/fuzzy/output', [FuzzyController::class, 'output'])->name('fuzzy.output');
+        Route::post('/fuzzy/{slug}/save', [FuzzyController::class, 'save'])->name('fuzzy.save');
+        Route::post('/fuzzy/{slug}/test', [FuzzyController::class, 'test'])->name('fuzzy.test');
         Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
         Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar');
         Route::get('/artikel', fn() => view('admin.jurnal.index'))->name('jurnal.index');
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     });
 });
-
 
 

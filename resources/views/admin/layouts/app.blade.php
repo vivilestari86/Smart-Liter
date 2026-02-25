@@ -81,6 +81,12 @@
           <span class="si">🪴</span>
           <span class="st">Usia Tanaman</span>
       </a>
+
+      <a class="sub-link {{ request()->routeIs('admin.fuzzy.output') ? 'active' : '' }}"
+         href="{{ route('admin.fuzzy.output') }}">
+          <span class="si">🚿</span>
+          <span class="st">Output</span>
+      </a>
   </div>
 
   <a class="side-link {{ request()->routeIs('admin.riwayat.*') ? 'active' : '' }}"
