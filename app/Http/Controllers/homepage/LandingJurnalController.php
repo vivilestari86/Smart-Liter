@@ -27,5 +27,24 @@ class LandingJurnalController extends Controller
         'Content-Type' => 'application/pdf',
         ]);
     }
-}
 
+    public function view(Journal $journal)
+    {
+        $path = $journal->pdf_path;
+
+        if (!$path || !Storage::disk('public')->exists($path)) {
+            abort(404, 'File PDF tidak ditemukan.');
+        }
+
+        $fullPath = Storage::disk('public')->path($path);
+        $safeTitle = preg_replace('/[^A-Za-z0-9\-_ ]/', '', $journal->title ?? 'jurnal');
+        $filename = trim(preg_replace('/\s+/', ' ', $safeTitle));
+        if ($filename === '') $filename = 'jurnal';
+        $filename .= '.pdf';
+
+        return response()->file($fullPath, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$filename.'"',
+        ]);
+    }
+}
