@@ -248,9 +248,9 @@
 
     .journal-container {
       position: relative;
-      max-width: 1400px;
+      max-width: 1100px;
       margin: 0 auto;
-      padding: 0 60px; /* Memberi ruang untuk panah navigasi */
+      padding: 0 48px; /* ruang panah */
     }
 
     /* Journal wrapper dengan scroll snap */
@@ -276,17 +276,17 @@
 
     /* Journal card dengan scroll snap alignment */
     .journal-card-modern {
-      min-width: calc(100% - 40px); /* Lebar card hampir penuh dengan jarak */
-      max-width: 800px;
+      min-width: calc(100% - 32px);
+      max-width: 760px;
       background: rgba(255,255,255,.97);
-      border-radius: 32px;
-      padding: 2.5rem;
+      border-radius: 26px;
+      padding: 1.8rem;
       display: flex;
-      gap: 30px;
-      box-shadow: 0 30px 45px rgba(0,0,0,.2);
+      gap: 22px;
+      box-shadow: 0 24px 36px rgba(0,0,0,.18);
       border: 1px solid rgba(255,255,255,.2);
       transition: all 0.3s ease;
-      scroll-snap-align: center; /* Memusatkan card saat di-scroll */
+      scroll-snap-align: center;
       margin: 0 auto;
       flex-shrink: 0;
       position: relative;
@@ -294,7 +294,7 @@
 
     @media (min-width: 992px) {
       .journal-card-modern {
-        min-width: 900px;
+        min-width: 720px;
       }
     }
 
@@ -333,13 +333,25 @@
       background: #f0f3f7;
       transition: all 0.3s ease;
       box-shadow: 0 15px 30px rgba(0,0,0,.15);
+      height: 240px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
     }
 
-    .pdf-preview {
+    .pdf-canvas {
       width: 100%;
-      height: 350px; /* Tinggi lebih besar untuk preview yang lebih baik */
-      border: none;
+      height: auto;
+      display: block;
       background: white;
+    }
+
+    .pdf-loading {
+      position: absolute;
+      font-size: 14px;
+      color: #6b7280;
+      font-weight: 600;
     }
 
     /* Navigasi Panah */
@@ -390,8 +402,8 @@
         font-size: 20px;
       }
       
-      .pdf-preview {
-        height: 250px;
+      .pdf-container {
+        height: 200px;
       }
       
       .journal-card-modern {
@@ -645,38 +657,27 @@
             </div>
             <div class="journal-content">
               <h4 class="fw-bold mb-1">{{ $j->title }}</h4>
-              <p class="text-muted mb-2"><small>Oleh: {{ $j->author PDF '-' }}</small></p>
+              <p class="text-muted mb-2"><small>Oleh: {{ $j->author ?? '-' }}</small></p>
               <p class="mb-3" style="font-size: 1.1rem;">{{ $j->summary }}</p>
               
-              <!-- PDF PREVIEW YANG LEBIH BESAR DAN TERPUSAT -->
+              <!-- PDF PREVIEW -->
               <div class="pdf-container">
                 @php
-                  $pdfUrl = $j->pdf_path ? url(Storage::disk('public')->url($j->pdf_path)) : null;
+                  $hasPdf = $j->pdf_path && Storage::disk('public')->exists($j->pdf_path);
                 @endphp
-                @if($pdfUrl)
-                  <iframe 
-                    src="{{ $pdfUrl }}" 
-                    class="pdf-preview"
-                    title="PDF Preview - {{ $j->title }}"
-                    allowfullscreen
-                    webkitallowfullscreen>
-                  </iframe>
+                @if($hasPdf)
+                  <canvas class="pdf-canvas" data-pdf-url="{{ route('jurnal.view', $j) }}"></canvas>
+                  <div class="pdf-loading">Memuat preview...</div>
                 @else
                   <div class="pdf-fallback text-center p-3 bg-light rounded-3 mt-2">
                     <span style="font-size: 2rem;">PDF</span>
-                    <p class="mb-2">Preview tidak tersedia</p>
+                    <p class="mb-2">File PDF tidak ditemukan</p>
                   </div>
                 @endif
               </div>
               
-              <!-- Fallback jika iframe tidak bisa loading -->
-              <div class="pdf-fallback text-center p-3 bg-light rounded-3 mt-2" style="display: none;">
-                <span style="font-size: 2rem;">PDF</span>
-                <p class="mb-2">Preview tidak tersedia, silakan download PDF</p>
-              </div>
-              
               <div class="d-flex justify-content-between align-items-center mt-4">
-                @if($j->pdf_path)
+                @if($hasPdf)
                   <a href="{{ route('jurnal.download', $j) }}" class="btn btn-success fw-bold px-4 py-2">
                     Download PDF
                   </a>
@@ -721,6 +722,7 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
@@ -863,19 +865,47 @@
       }
     }
     
-    // PDF Fallback handling
-    const pdfFrames = document.querySelectorAll('.pdf-preview');
-    pdfFrames.forEach(frame => {
-      frame.addEventListener('error', function() {
-        // If iframe fails to load, show fallback
-        const parent = this.parentNode;
-        const fallback = parent.nextElementSibling;
-        if (fallback && fallback.classList.contains('pdf-fallback')) {
-          this.style.display = 'none';
-          fallback.style.display = 'block';
+    // PDF preview rendering (first page) using PDF.js
+    const pdfCanvases = document.querySelectorAll('.pdf-canvas[data-pdf-url]');
+    if (pdfCanvases.length && window['pdfjsLib']) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+      const renderPdfToCanvas = async (canvas) => {
+        const url = canvas.dataset.pdfUrl;
+        const container = canvas.closest('.pdf-container');
+        const loading = container ? container.querySelector('.pdf-loading') : null;
+
+        try {
+          const resp = await fetch(url, { cache: 'no-store', credentials: 'same-origin' });
+          const data = await resp.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({ data, disableWorker: true }).promise;
+          const page = await pdf.getPage(1);
+          const viewport = page.getViewport({ scale: 1 });
+          const containerWidth = container.clientWidth;
+          const containerHeight = container.clientHeight;
+          const scale = Math.min(
+            containerWidth / viewport.width,
+            containerHeight / viewport.height
+          );
+          const scaled = page.getViewport({ scale });
+          canvas.width = scaled.width;
+          canvas.height = scaled.height;
+          const ctx = canvas.getContext('2d');
+          await page.render({ canvasContext: ctx, viewport: scaled }).promise;
+          if (loading) loading.style.display = 'none';
+        } catch (err) {
+          if (loading) loading.textContent = 'Preview gagal dimuat';
         }
+      };
+
+      pdfCanvases.forEach((canvas) => renderPdfToCanvas(canvas));
+    } else {
+      pdfCanvases.forEach((canvas) => {
+        const container = canvas.closest('.pdf-container');
+        const loading = container ? container.querySelector('.pdf-loading') : null;
+        if (loading) loading.textContent = 'Preview tidak tersedia';
       });
-    });
+    }
     
     // Auto-animate untuk floating leaves
     setInterval(() => {

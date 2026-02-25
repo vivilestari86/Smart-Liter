@@ -13,6 +13,7 @@ use App\Http\Controllers\homepage\LandingFuzzyController;
 Route::get('/', [LandingController::class, 'index'])->name('home');
 Route::post('/kalkulator/hitung', [LandingFuzzyController::class, 'hitung'])->name('kalkulator.hitung');
 Route::get('/jurnal/{journal}/download', [JurnalController::class, 'download'])->name('jurnal.download');
+Route::get('/jurnal/{journal}/view', [JurnalController::class, 'view'])->name('jurnal.view');
 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -37,6 +38,5 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     });
 });
-
 
 

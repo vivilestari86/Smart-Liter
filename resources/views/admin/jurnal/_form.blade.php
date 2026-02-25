@@ -29,7 +29,14 @@
 <div class="form-group mb-3">
     <label for="pdf">File PDF</label>
     @if(isset($journal) && $journal->pdf_path)
-        <p><a href="{{ Storage::disk('public')->url($journal->pdf_path) }}" target="_blank">Lihat file saat ini</a></p>
+        @php
+            $hasPdf = Storage::disk('public')->exists($journal->pdf_path);
+        @endphp
+        @if($hasPdf)
+            <p><a href="{{ route('jurnal.view', $journal) }}" target="_blank">Lihat file saat ini</a></p>
+        @else
+            <p class="text-danger">File PDF tidak ditemukan di storage.</p>
+        @endif
     @endif
     <input type="file" name="pdf" id="pdf" class="form-control" accept="application/pdf">
 </div>
