@@ -16,36 +16,36 @@ class RiwayatController extends Controller
         $month    = $request->query('month', 'all');
         $kategori = $request->query('kategori', 'all');
 
-        $query = CalculationHistory::query();
+        $baseQuery = CalculationHistory::query();
 
         $driver = DB::connection()->getDriverName(); // sqlite / mysql / pgsql
 
         // Filter tahun & bulan: beda function tiap DB
         if ($year !== 'all') {
             if ($driver === 'sqlite') {
-                $query->whereRaw("strftime('%Y', created_at) = ?", [(string)$year]);
+                $baseQuery->whereRaw("strftime('%Y', created_at) = ?", [(string)$year]);
             } else {
-                $query->whereYear('created_at', (int)$year);
+                $baseQuery->whereYear('created_at', (int)$year);
             }
         }
 
         if ($month !== 'all') {
             if ($driver === 'sqlite') {
                 $mm = str_pad((string)$month, 2, '0', STR_PAD_LEFT); // 01..12
-                $query->whereRaw("strftime('%m', created_at) = ?", [$mm]);
+                $baseQuery->whereRaw("strftime('%m', created_at) = ?", [$mm]);
             } else {
-                $query->whereMonth('created_at', (int)$month);
+                $baseQuery->whereMonth('created_at', (int)$month);
             }
         }
 
         if ($kategori !== 'all') {
-            $query->where('kategori', $kategori);
+            $baseQuery->where('kategori', $kategori);
         }
 
-        $histories = $query->latest()->paginate(8)->withQueryString();
+        $histories = (clone $baseQuery)->latest()->paginate(8)->withQueryString();
 
-                // ===== SUMMARY + CHART DATA (tambahan) =====
-        $base = clone $query; // base filter yang sama
+        // ===== SUMMARY + CHART DATA (tambahan) =====
+        $base = clone $baseQuery; // base filter yang sama (tanpa efek pagination)
 
         // Total perhitungan hari ini (mengikuti filter yang dipilih)
         $totalHariIni = (clone $base)

@@ -38,13 +38,13 @@
     <div class="riw-charts">
         <div class="riw-panel">
             <div class="riw-panel-title">Distributor Output</div>
-            <div class="riw-panel-body">
+            <div class="riw-panel-body riw-pie-wrap">
                 <div class="legend">
                     <div class="legend-item"><span class="swatch swatch-a"></span> Mati</div>
                     <div class="legend-item"><span class="swatch swatch-b"></span> Sedikit</div>
                     <div class="legend-item"><span class="swatch swatch-c"></span> Banyak</div>
                 </div>
-                <div class="chart-box">
+                <div class="chart-box riw-pie-chart-box">
                     <canvas id="pieRiwayat"></canvas>
                 </div>
             </div>
@@ -234,6 +234,53 @@
 .table-wrap{ overflow:auto; border-radius:12px; }
 .icon-eye{ border:0; background:transparent; cursor:pointer; font-size:16px; }
 
+.riw-pie-wrap{
+    display:grid;
+    grid-template-columns: minmax(120px, 1fr) minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    min-width: 0;
+}
+
+.riw-pie-chart-box{
+    width: min(100%, 240px);
+    max-width: 100%;
+    aspect-ratio: 1 / 1;
+    height: auto !important;
+    margin-inline: auto;
+    position: relative;
+    overflow: hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.riw-pie-chart-box canvas{
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+}
+
+@media (max-width: 980px){
+    .riw-pie-wrap{
+        grid-template-columns: 1fr;
+        justify-items: center;
+        text-align: center;
+    }
+
+    .riw-pie-wrap .legend{
+        min-width: auto;
+        display:flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .riw-pie-wrap .legend-item{
+        margin: 0;
+    }
+}
+
 /* modal */
 .modal{ display:none; }
 .modal.open{ display:block; }
@@ -284,59 +331,12 @@
     font-size: 13px;
 }
 </style>
+@endsection
 
-{{-- JS modal --}}
+@push('scripts')
 <script>
-(function(){
-    const modal = document.getElementById('detailModal');
-    const closeBackdrop = document.getElementById('modalClose');
-    const closeX = document.getElementById('modalX');
-
-    const el = (id) => document.getElementById(id);
-
-    const openModal = (data) => {
-        el('modalSub').textContent = `${data.ip || '-'} • ${data.tanggal || '-'}`;
-        el('mSuhu').textContent = (data.suhu ?? '-') + (data.suhu !== '' && data.suhu != null ? ' °C' : '');
-        el('mKU').textContent = (data.ku ?? '-') + (data.ku !== '' && data.ku != null ? ' %' : '');
-        el('mKT').textContent = (data.kt ?? '-') + (data.kt !== '' && data.kt != null ? ' %' : '');
-        el('mUmur').textContent = (data.umur ?? '-') + (data.umur !== '' && data.umur != null ? ' Hari' : '');
-        el('mOutput').textContent = (data.output ?? '-') + (data.output !== '' && data.output != null ? ' Liter' : '');
-        el('mKategori').textContent = data.kategori ? data.kategori : '-';
-        el('mDeskripsi').textContent = data.deskripsi ?? '-';
-
-        modal.classList.add('open');
-        modal.setAttribute('aria-hidden', 'false');
-    };
-
-    const closeModal = () => {
-        modal.classList.remove('open');
-        modal.setAttribute('aria-hidden', 'true');
-    };
-
-    document.querySelectorAll('.js-open-detail').forEach(btn => {
-        btn.addEventListener('click', () => {
-            openModal({
-                ip: btn.dataset.ip,
-                tanggal: btn.dataset.tanggal,
-                suhu: btn.dataset.suhu,
-                ku: btn.dataset.ku,
-                kt: btn.dataset.kt,
-                umur: btn.dataset.umur,
-                output: btn.dataset.output,
-                kategori: btn.dataset.kategori,
-                deskripsi: btn.dataset.deskripsi,
-            });
-        });
-    });
-
-    closeBackdrop.addEventListener('click', closeModal);
-    closeX.addEventListener('click', closeModal);
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
-})();
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    // PIE
+document.addEventListener('DOMContentLoaded', () => {
+    // PIE (samakan dengan dashboard)
     const pieData = @json([
       $pie['mati'] ?? 0,
       $pie['sedikit'] ?? 0,
@@ -345,75 +345,111 @@
 
     const pieCtx = document.getElementById('pieRiwayat');
     if (pieCtx) {
-      new Chart(pieCtx, {
-        type: 'pie',
-        data: {
-          labels: ['Mati','Sedikit','Banyak'],
-          datasets: [{ data: pieData }]
-        },
-        options: { plugins: { legend: { display:false } } }
-      });
+        const totalPie = pieData.reduce((sum, val) => sum + Number(val || 0), 0);
+        const hasPieData = totalPie > 0;
+
+        new Chart(pieCtx, {
+            type: 'doughnut',
+            data: {
+                labels: hasPieData ? ['Mati', 'Sedikit', 'Banyak'] : ['Belum ada data'],
+                datasets: [{
+                    data: hasPieData ? pieData : [1],
+                    backgroundColor: hasPieData
+                        ? ['#7a3b11', '#c67d46', '#7fd3ff']
+                        : ['#d1d5db'],
+                    borderColor: '#ffffff',
+                    borderWidth: 2,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '56%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        enabled: hasPieData,
+                    },
+                },
+            }
+        });
     }
 
     // LINE per jam
-    const perJam = @json($perJam ?? []);
+    const perJamRaw = @json($perJam ?? []);
+    const perJam = Array.from({ length: 24 }, (_, i) => Number(perJamRaw[i] ?? 0));
+    const maxPerJam = Math.max(0, ...perJam);
     const lineCtx = document.getElementById('lineRiwayat');
     if (lineCtx) {
-      new Chart(lineCtx, {
-        type: 'line',
-        data: {
-          labels: Array.from({length:24}, (_,i) => String(i).padStart(2,'0')),
-          datasets: [{
-            label: 'Jumlah Perhitungan',
-            data: perJam,
-            tension: 0.25
-          }]
-        },
-        options: {
-          plugins: { legend: { display:false } },
-          scales: { y: { beginAtZero:true } }
-        }
-      });
+        new Chart(lineCtx, {
+            type: 'line',
+            data: {
+                labels: Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0')),
+                datasets: [{
+                    label: 'Jumlah Perhitungan',
+                    data: perJam,
+                    tension: 0.25,
+                    borderColor: '#3498db',
+                    backgroundColor: '#3498db',
+                    borderWidth: 3,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    fill: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        suggestedMax: Math.max(3, maxPerJam + 1),
+                        ticks: {
+                            stepSize: 1,
+                            precision: 0,
+                        }
+                    }
+                }
+            }
+        });
     }
-  </script>
-    </script>
-        <script>
-        document.addEventListener('DOMContentLoaded', () => {
-        const modal = document.getElementById('detailModal');
-        const closeBackdrop = document.getElementById('modalClose');
-        const closeX = document.getElementById('modalX');
 
-        const el = (id) => document.getElementById(id);
+    // Modal detail
+    const modal = document.getElementById('detailModal');
+    const closeBackdrop = document.getElementById('modalClose');
+    const closeX = document.getElementById('modalX');
+    const el = (id) => document.getElementById(id);
 
-        function openModalFromButton(btn){
-            el('modalSub').textContent = `${btn.dataset.ip || '-'} • ${btn.dataset.tanggal || '-'}`;
-            el('mSuhu').textContent = btn.dataset.suhu ? btn.dataset.suhu + ' °C' : '-';
-            el('mKU').textContent = btn.dataset.ku ? btn.dataset.ku + ' %' : '-';
-            el('mKT').textContent = btn.dataset.kt ? btn.dataset.kt + ' %' : '-';
-            el('mUmur').textContent = btn.dataset.umur ? btn.dataset.umur + ' Hari' : '-';
-            el('mOutput').textContent = btn.dataset.output ? btn.dataset.output + ' Liter' : '-';
-            el('mKategori').textContent = btn.dataset.kategori || '-';
-            el('mDeskripsi').textContent = btn.dataset.deskripsi || '-';
+    function openModalFromButton(btn) {
+        el('modalSub').textContent = `${btn.dataset.ip || '-'} • ${btn.dataset.tanggal || '-'}`;
+        el('mSuhu').textContent = btn.dataset.suhu ? `${btn.dataset.suhu} °C` : '-';
+        el('mKU').textContent = btn.dataset.ku ? `${btn.dataset.ku} %` : '-';
+        el('mKT').textContent = btn.dataset.kt ? `${btn.dataset.kt} %` : '-';
+        el('mUmur').textContent = btn.dataset.umur ? `${btn.dataset.umur} Hari` : '-';
+        el('mOutput').textContent = btn.dataset.output ? `${btn.dataset.output} Liter` : '-';
+        el('mKategori').textContent = btn.dataset.kategori || '-';
+        el('mDeskripsi').textContent = btn.dataset.deskripsi || '-';
 
-            modal.classList.add('open');
-            modal.setAttribute('aria-hidden', 'false');
-        }
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+    }
 
-        function closeModal(){
-            modal.classList.remove('open');
-            modal.setAttribute('aria-hidden', 'true');
-        }
+    function closeModal() {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+    }
 
-        document.addEventListener('click', (e) => {
-            const btn = e.target.closest('.js-open-detail');
-            if (btn) return openModalFromButton(btn);
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.js-open-detail');
+        if (btn) return openModalFromButton(btn);
 
-            if (e.target === closeBackdrop || e.target === closeX) return closeModal();
-        });
+        if (e.target === closeBackdrop || e.target === closeX) return closeModal();
+    });
 
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeModal();
-        });
-        });
-        </script>
-@endsection
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeModal();
+    });
+});
+</script>
+@endpush

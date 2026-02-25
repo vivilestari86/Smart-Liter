@@ -11,7 +11,7 @@
     </div>
     
     <div class="header-actions">
-      <a href="#" class="btn btn-primary">
+      <a href="{{ route('admin.jurnal.create') }}" class="btn btn-primary">
         <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M12 5v14M5 12h14"/>
         </svg>
@@ -25,21 +25,21 @@
     <div class="stat-card">
       <div class="stat-icon" style="background: #e3f2fd; color: #1976d2;">📊</div>
       <div class="stat-info">
-        <span class="stat-value">12</span>
+        <span class="stat-value">{{ $total }}</span>
         <span class="stat-label">Total Jurnal</span>
       </div>
     </div>
     <div class="stat-card">
       <div class="stat-icon" style="background: #e8f5e8; color: #2e7d32;">📄</div>
       <div class="stat-info">
-        <span class="stat-value">8</span>
+        <span class="stat-value">{{ $publishedCount }}</span>
         <span class="stat-label">Published</span>
       </div>
     </div>
     <div class="stat-card">
       <div class="stat-icon" style="background: #fff3e0; color: #ed6c02;">✏️</div>
       <div class="stat-info">
-        <span class="stat-value">4</span>
+        <span class="stat-value">{{ $draftCount }}</span>
         <span class="stat-label">Draft</span>
       </div>
     </div>
@@ -74,59 +74,31 @@
   <div class="journal-list">
     <div class="list-header">
       <h2 class="list-title">Daftar Jurnal</h2>
-      <span class="item-count">Menampilkan 2 dari 12 jurnal</span>
+      @php
+        $totalCount = method_exists($journals, 'total') ? $journals->total() : $journals->count();
+      @endphp
+      <span class="item-count">Menampilkan {{ $journals->count() }} dari {{ $totalCount }} jurnal</span>
     </div>
 
     {{-- Journal Cards View (Alternative to table for better mobile experience) --}}
-    @php
-      $items = [
-        [
-          'id'=>1,
-          'title'=>'Evaluasi Sistem Irigasi Cerdas',
-          'author'=>'Dr. Ahmad Santoso, M.Sc',
-          'desc'=>'Analisis efisiensi irigasi tetes pada tanaman cabai menggunakan sensor kelembaban tanah.',
-          'version'=>'Vol. 1',
-        
-          'status'=>'Publish',
-          'cover'=>null,
-          'date'=>'2024-01-15',
-        ],
-        [
-          'id'=>2,
-          'title'=>'Pertanian Hidroponik Modern',
-          'author'=>'Prof. Sinta Dewi',
-          'desc'=>'Studi kasus pengembangan hidroponik untuk lahan sempit.',
-          'version'=>'Vol. 2',
-          'tags'=>['PDF'],
-          'status'=>'Draft',
-          'cover'=>null,
-          'date'=>'2024-02-20',
-        ],
-      ];
-    @endphp
-
-    @foreach($items as $it)
+    @forelse($journals as $journal)
     <div class="journal-card">
       <div class="journal-card-left">
         <div class="journal-cover">
-          @if($it['cover'])
-            <img src="{{ $it['cover'] }}" alt="Cover">
-          @else
-            <div class="cover-placeholder">
-              <span class="placeholder-icon">📰</span>
-            </div>
-          @endif
+          <div class="cover-placeholder">
+            <span class="placeholder-icon">PDF</span>
+          </div>
         </div>
         
         <div class="journal-info">
           <div class="journal-header">
-            <h3 class="journal-title">{{ $it['title'] }}</h3>
-            <span class="status-badge {{ $it['status'] === 'Publish' ? 'status-published' : 'status-draft' }}">
-              {{ $it['status'] }}
+            <h3 class="journal-title">{{ $journal->title }}</h3>
+            <span class="status-badge {{ $journal->status === 'Publish' ? 'status-published' : 'status-draft' }}">
+              {{ $journal->status }}
             </span>
           </div>
           
-          <p class="journal-description">{{ $it['desc'] }}</p>
+          <p class="journal-description">{{ $journal->summary }}</p>
           
           <div class="journal-meta">
             <span class="meta-item">
@@ -134,7 +106,7 @@
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                 <circle cx="12" cy="7" r="4"/>
               </svg>
-              {{ $it['author'] }}
+              {{ $journal->author ?? '-' }}
             </span>
             <span class="meta-item">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -143,7 +115,7 @@
                 <line x1="8" y1="2" x2="8" y2="6"/>
                 <line x1="3" y1="10" x2="21" y2="10"/>
               </svg>
-              {{ $it['date'] }}
+              {{ optional($journal->published_at)->format('Y-m-d') ?? optional($journal->created_at)->format('Y-m-d') }}
             </span>
           </div>
           
@@ -153,9 +125,9 @@
       <div class="journal-card-right">
         <div class="action-buttons">
           <button class="action-btn preview-btn js-preview" 
-                  data-title="{{ $it['title'] }}"
-                  data-author="{{ $it['author'] }}"
-                  data-desc='{{ $it["desc"] }}'
+                  data-title="{{ $journal->title }}"
+                  data-author="{{ $journal->author ?? '-' }}"
+                  data-desc='{{ $journal->summary }}'
                  
                   title="Preview">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -164,7 +136,7 @@
             </svg>
           </button>
           
-          <a href="#" class="action-btn edit-btn" title="Edit">
+          <a href="{{ route('admin.jurnal.edit', $journal) }}" class="action-btn edit-btn" title="Edit">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"/>
               <polygon points="18 2 22 6 12 16 8 16 8 12 18 2"/>
@@ -182,18 +154,23 @@
         </div>
       </div>
     </div>
-    @endforeach
+    @empty
+    <div class="journal-card">
+      <div class="journal-info">
+        <div class="journal-header">
+          <h3 class="journal-title">Belum ada jurnal</h3>
+        </div>
+        <p class="journal-description">Tambah jurnal baru agar muncul di daftar ini.</p>
+      </div>
+    </div>
+    @endforelse
 
     {{-- Pagination --}}
-    <div class="pagination">
-      <button class="page-btn" disabled>‹</button>
-      <button class="page-btn active">1</button>
-      <button class="page-btn">2</button>
-      <button class="page-btn">3</button>
-      <span class="page-dots">...</span>
-      <button class="page-btn">8</button>
-      <button class="page-btn">›</button>
-    </div>
+    @if(method_exists($journals, 'links'))
+      <div class="pagination">
+        {{ $journals->links() }}
+      </div>
+    @endif
   </div>
 </div>
 

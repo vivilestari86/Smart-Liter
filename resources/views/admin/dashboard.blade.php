@@ -47,7 +47,7 @@
 
     {{-- Line chart (contoh dulu) --}}
     <div class="card panel span-2 panel-line">
-        <div class="panel-title center">UJI TANAMAN</div>
+        <div class="panel-title center">Grafik Uji Usia Tanaman</div>
         <div class="panel-body">
             <div class="line-box">
                 <canvas id="lineChart"></canvas>
@@ -210,6 +210,13 @@
     // ===== PIE dari PHP (aman walau kosong) =====
     const pieData = @json([$pie['mati'], $pie['sedikit'], $pie['banyak']]);
     const usiaChartData = @json($usiaChartData ?? []);
+    const normalizeKey = (value) => String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '_');
+
+    let usiaLineChart = null;
+    let usiaMarkerDatasets = [];
 
 
     const pieCtx = document.getElementById('pieChart');
@@ -267,6 +274,25 @@
             pointHoverRadius: 4,
         }));
 
+        usiaMarkerDatasets = categories.map((cat, idx) => {
+            const color = palette[idx % palette.length];
+            return {
+                label: `Uji ${cat.name}`,
+                fuzzyKey: normalizeKey(cat.name),
+                data: [],
+                borderColor: color,
+                backgroundColor: color,
+                pointBackgroundColor: color,
+                pointBorderColor: color,
+                pointBorderWidth: 1,
+                pointRadius: 6,
+                pointHoverRadius: 7,
+                pointStyle: 'circle',
+                showLine: false,
+                parsing: false,
+            };
+        });
+
         const allX = categories.flatMap((cat) => [
             Number(cat.titik_a_x),
             Number(cat.titik_b_x),
@@ -281,10 +307,10 @@
         const minX = minXRaw - padding;
         const maxX = maxXRaw + padding;
 
-        new Chart(lineCtx, {
+        usiaLineChart = new Chart(lineCtx, {
             type: 'line',
             data: {
-                datasets: lineDatasets
+                datasets: [...lineDatasets, ...usiaMarkerDatasets]
             },
             options: {
                 responsive: true,
@@ -292,7 +318,13 @@
                 parsing: false,
                 plugins: {
                     legend: {
-                        position: window.matchMedia('(max-width: 768px)').matches ? 'bottom' : 'top'
+                        position: window.matchMedia('(max-width: 768px)').matches ? 'bottom' : 'top',
+                        labels: {
+                            filter: (legendItem, chartData) => {
+                                const ds = chartData.datasets[legendItem.datasetIndex];
+                                return !String(ds?.label || '').startsWith('Uji ');
+                            }
+                        }
                     }
                 },
                 scales: {
@@ -329,6 +361,7 @@
     const btnTest = document.getElementById('btnTestUmur');
     btnTest?.addEventListener('click', async () => {
     const umur_hari = document.getElementById('inpUmur').value;
+    const umurValue = Number(umur_hari);
 
     const res = await fetch("{{ route('admin.dashboard.testUmur') }}", {
     method: "POST",
@@ -353,22 +386,33 @@
             dewasa: outDewasa,
             tua: outTua,
         };
+        const membershipsMap = {};
 
         if (Array.isArray(json.memberships)) {
             json.memberships.forEach((item) => {
-                const key = String(item.name || '')
-                    .trim()
-                    .toLowerCase()
-                    .replace(/\s+/g, '_');
+                const key = normalizeKey(item.name);
+                const numericValue = Number(item.value);
 
                 if (outputMap[key]) {
                     outputMap[key].value = item.value ?? '-';
                 }
+                membershipsMap[key] = Number.isFinite(numericValue) ? numericValue : 0;
             });
         } else {
             outMuda.value = json.muda ?? '-';
             outDewasa.value = json.dewasa ?? '-';
             outTua.value = json.tua ?? '-';
+            membershipsMap.muda = Number(json.muda ?? 0) || 0;
+            membershipsMap.dewasa = Number(json.dewasa ?? 0) || 0;
+            membershipsMap.tua = Number(json.tua ?? 0) || 0;
+        }
+
+        if (usiaLineChart && Number.isFinite(umurValue) && Array.isArray(usiaMarkerDatasets)) {
+            usiaMarkerDatasets.forEach((dataset) => {
+                const yVal = Number(membershipsMap[dataset.fuzzyKey] ?? 0);
+                dataset.data = [{ x: umurValue, y: Number.isFinite(yVal) ? yVal : 0 }];
+            });
+            usiaLineChart.update();
         }
     });
 

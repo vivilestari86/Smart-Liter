@@ -3,36 +3,49 @@
 namespace App\Http\Controllers\homepage;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\CalculationHistory;
+use App\Services\FuzzyCalculatorService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use RuntimeException;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class LandingFuzzyController extends Controller
 {
-    public function hitung(Request $request)
+    public function __construct(private FuzzyCalculatorService $fuzzyCalculator)
     {
-        $data = $request->validate([
-            'suhu' => 'required|numeric',
-            'kelembapan_udara' => 'required|numeric',
-            'kelembapan_tanah' => 'required|numeric',
-            'umur' => 'required|numeric',
+    }
+
+    public function hitung(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'suhu' => ['required', 'numeric'],
+            'kelembapan_udara' => ['required', 'numeric'],
+            'kelembapan_tanah' => ['required', 'numeric'],
+            'umur' => ['required', 'numeric'],
         ]);
 
-        // HITUNG FUZZY (isi sesuai logic kamu)
-        $hasil = $this->hitungFuzzy([
-            'suhu' => (float) $data['suhu'],
-            'kelembapan_udara' => (float) $data['kelembapan_udara'],
-            'kelembapan_tanah' => (float) $data['kelembapan_tanah'],
-            'usia_tanaman' => (int) $data['umur'],
-        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validasi input gagal.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
 
-        /**
-         * $hasil minimal berisi:
-         * - output_liter (float)
-         * - kategori (string)
-         * - deskripsi (string)
-         * Optional:
-         * - debug_rules (array)
-         */
+        $data = $validator->validated();
+
+        try {
+            $hasil = $this->fuzzyCalculator->calculate([
+                'suhu' => (float) $data['suhu'],
+                'kelembapan_udara' => (float) $data['kelembapan_udara'],
+                'kelembapan_tanah' => (float) $data['kelembapan_tanah'],
+                'usia_tanaman' => (float) $data['umur'],
+            ]);
+        } catch (RuntimeException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        }
 
         // SIMPAN RIWAYAT (untuk admin)
         CalculationHistory::create([
@@ -46,28 +59,16 @@ class LandingFuzzyController extends Controller
             'deskripsi' => $hasil['deskripsi'] ?? null,
         ]);
 
-        // TAMPILKAN di landing (blade kamu pakai ml/hari)
+        // Return JSON untuk AJAX di landing page.
         $hasilMl = (int) round($hasil['output_liter'] * 1000);
 
-        return redirect()->route('home')
-            ->with('hasil', $hasilMl)
-            ->with('debug_rules', $hasil['debug_rules'] ?? null);
-    }
-
-    private function hitungFuzzy(array $x): array
-    {
-        // ======================================================
-        // TODO: MASUKKAN LOGIC FUZZY ASLI PUNYA KAMU DI SINI
-        // ======================================================
-
-        // Placeholder biar tidak error (GANTI!)
-        $output_liter = max(0.1, 0.3 + ($x['suhu'] * 0.01) + (max(0, 50 - $x['kelembapan_tanah']) * 0.02));
-
-        return [
-            'output_liter' => round($output_liter, 2),
-            'kategori' => 'Normal',
-            'deskripsi' => 'Rekomendasi sementara (silakan ganti sesuai rule fuzzy asli).',
-            'debug_rules' => null,
-        ];
+        return response()->json([
+            'message' => 'Perhitungan berhasil.',
+            'hasil_ml' => $hasilMl,
+            'output_liter' => $hasil['output_liter'],
+            'kategori' => $hasil['kategori'] ?? null,
+            'deskripsi' => $hasil['deskripsi'] ?? null,
+            'debug_rules' => $hasil['debug_rules'] ?? null,
+        ]);
     }
 }

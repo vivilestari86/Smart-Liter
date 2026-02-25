@@ -11,8 +11,10 @@ class LandingController extends Controller
     {
 
         $journals = Journal::query()
-            ->orderBy('created_at', 'asc')
-            ->take(3)
+            ->where('status', 'Publish')
+            ->orderByDesc('published_at')
+            ->orderByDesc('created_at')
+            ->take(10)
             ->get();
 
         return view('homepage.landing', compact('journals'));

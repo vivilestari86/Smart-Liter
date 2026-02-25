@@ -536,8 +536,13 @@
         <div class="card-soft">
           <h2 class="fw-bold mb-4" style="color: var(--brand-dark);">💧 Hitung Kebutuhan Air</h2>
           
-          <form method="POST" action="{{ route('kalkulator.hitung') }}">
+          <form id="kalkulatorForm" method="POST" action="{{ route('kalkulator.hitung') }}">
             @csrf
+
+            <div id="calcError" class="alert alert-danger rounded-4 py-3 px-4 mb-4 d-none">
+              <div class="fw-bold mb-1">Perhitungan belum bisa dijalankan</div>
+              <div id="calcErrorText">Terjadi kesalahan.</div>
+            </div>
             
             <div class="row g-4">
               <!-- Suhu -->
@@ -586,19 +591,20 @@
             </div>
           </form>
           
-          @if(session('hasil') !== null)
-            <div class="mt-5 p-4 bg-light rounded-4" style="border-left: 5px solid var(--brand);">
-              <div class="d-flex align-items-center gap-3">
-                <span style="font-size: 2rem;">💦</span>
-                <div>
-                  <div class="text-muted small">REKOMENDASI AIR</div>
-                  <div class="fw-bold" style="font-size: 2.2rem; color: var(--brand-dark);">
-                    {{ session('hasil') }} <small style="font-size: 1rem;">ml</small>
-                  </div>
+          <div id="kalkulatorResult" class="mt-5 p-4 bg-light rounded-4 d-none" style="border-left: 5px solid var(--brand);" tabindex="-1">
+            <div class="d-flex align-items-center gap-3">
+              <span style="font-size: 2rem;">💦</span>
+              <div>
+                <div class="text-muted small">REKOMENDASI AIR</div>
+                <div class="fw-bold" style="font-size: 2.2rem; color: var(--brand-dark);">
+                  <span id="hasilMlValue">0</span> <small style="font-size: 1rem;">ml</small>
+                </div>
+                <div class="text-muted small mt-1">
+                  <span id="hasilLiterValue">0</span> liter • kategori <span id="hasilKategoriValue">-</span>
                 </div>
               </div>
             </div>
-          @endif
+          </div>
         </div>
       </div>
       
@@ -634,42 +640,7 @@
       
       <!-- JOURNAL WRAPPER DENGAN SCROLL SNAP -->
       <div class="journal-snap-wrapper" id="journalSnapWrapper">
-        @php
-          $sampleJournals = [
-            [
-              'title' => 'Evaluasi Sistem Irigasi Cerdas', 
-              'summary' => 'Analisis efisiensi irigasi tetes pada tanaman cabai menggunakan sensor kelembaban tanah.',
-              'pdf' => 'irigasi-jurnal.pdf',
-              'penulis' => 'Dr. Ahmad Santoso, M.Sc'
-            ],
-            [
-              'title' => 'Pertahanan Tanah & Akar Tanaman', 
-              'summary' => 'Studi kasus pengaruh kelembaban tanah terhadap pertumbuhan akar pada tanaman hidroponik.',
-              'pdf' => 'tanah-jurnal.pdf',
-              'penulis' => 'Prof. Siti Nurhaliza, Ph.D'
-            ],
-            [
-              'title' => 'Pengaruh Kuantitas Air Optimal', 
-              'summary' => 'Optimalisasi pemberian air menggunakan fuzzy logic untuk tanaman tomat di musim kemarau.',
-              'pdf' => 'air-jurnal.pdf',
-              'penulis' => 'Ir. Bambang Wijaya, M.T'
-            ],
-            [
-              'title' => 'Smart Greenhouse IoT', 
-              'summary' => 'Implementasi Internet of Things pada greenhouse modern untuk monitoring tanaman otomatis.',
-              'pdf' => 'greenhouse-jurnal.pdf',
-              'penulis' => 'Dr. Rina Fitriani, M.Kom'
-            ],
-            [
-              'title' => 'Nutrisi Tanaman Hidroponik', 
-              'summary' => 'Studi komparasi pemberian nutrisi AB Mix pada tanaman selada dengan sistem NFT.',
-              'pdf' => 'nutrisi-jurnal.pdf',
-              'penulis' => 'Muhammad Rizki, S.P., M.Si'
-            ]
-          ];
-        @endphp
-        
-        @foreach($sampleJournals as $index => $j)
+        @forelse($journals as $index => $j)
           <div class="journal-card-modern" data-index="{{ $index }}">
             <div class="journal-icon-modern">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -679,40 +650,61 @@
               </svg>
             </div>
             <div class="journal-content">
-        
-              <p class="text-muted mb-2"><small>Oleh: {{ $j['penulis'] }}</small></p>
-              <p class="mb-3" style="font-size: 1.1rem;">{{ $j['summary'] }}</p>
+              <h4 class="fw-bold mb-1">{{ $j->title }}</h4>
+              <p class="text-muted mb-2"><small>Oleh: {{ $j->author ?? '-' }}</small></p>
+              <p class="mb-3" style="font-size: 1.1rem;">{{ $j->summary }}</p>
               
               <!-- PDF PREVIEW YANG LEBIH BESAR DAN TERPUSAT -->
               <div class="pdf-container">
-                <iframe 
-                  src="https://docs.google.com/viewer?url={{ urlencode(asset('pdfs/'.$j['pdf'])) }}&embedded=true" 
-                  class="pdf-preview"
-                  title="PDF Preview - {{ $j['title'] }}"
-                  allowfullscreen
-                  webkitallowfullscreen>
-                </iframe>
+                @php
+                  $pdfUrl = $j->pdf_path ? url(Storage::disk('public')->url($j->pdf_path)) : null;
+                @endphp
+                @if($pdfUrl)
+                  <iframe 
+                    src="{{ $pdfUrl }}" 
+                    class="pdf-preview"
+                    title="PDF Preview - {{ $j->title }}"
+                    allowfullscreen
+                    webkitallowfullscreen>
+                  </iframe>
+                @else
+                  <div class="pdf-fallback text-center p-3 bg-light rounded-3 mt-2">
+                    <span style="font-size: 2rem;">PDF</span>
+                    <p class="mb-2">Preview tidak tersedia</p>
+                  </div>
+                @endif
               </div>
               
               <!-- Fallback jika iframe tidak bisa loading -->
               <div class="pdf-fallback text-center p-3 bg-light rounded-3 mt-2" style="display: none;">
-                <span style="font-size: 2rem;">📄</span>
+                <span style="font-size: 2rem;">PDF</span>
                 <p class="mb-2">Preview tidak tersedia, silakan download PDF</p>
               </div>
               
               <div class="d-flex justify-content-between align-items-center mt-4">
-                <a href="#" class="btn btn-success fw-bold px-4 py-2" onclick="alert('Demo: PDF akan didownload - {{ $j['pdf'] }}')">
-                  📥 Download PDF
-                </a>
+                @if($j->pdf_path)
+                  <a href="{{ route('jurnal.download', $j) }}" class="btn btn-success fw-bold px-4 py-2">
+                    Download PDF
+                  </a>
+                @else
+                  <span class="text-muted">PDF belum tersedia</span>
+                @endif
               </div>
             </div>
           </div>
-        @endforeach
+        @empty
+          <div class="journal-card-modern" data-index="0">
+            <div class="journal-content">
+              <h4 class="fw-bold mb-2">Belum ada jurnal</h4>
+              <p class="mb-0">Silakan tambah jurnal dari panel admin.</p>
+            </div>
+          </div>
+        @endforelse
       </div>
       
       <!-- INDICATOR DOTS -->
       <div class="journal-indicators" id="journalIndicators">
-        @foreach($sampleJournals as $index => $j)
+        @foreach($journals as $index => $j)
           <span class="journal-dot {{ $index === 0 ? 'active' : '' }}" data-index="{{ $index }}"></span>
         @endforeach
       </div>
@@ -738,6 +730,83 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // ========== AJAX KALKULATOR ==========
+    const kalkulatorForm = document.getElementById('kalkulatorForm');
+    const calcError = document.getElementById('calcError');
+    const calcErrorText = document.getElementById('calcErrorText');
+    const kalkulatorResult = document.getElementById('kalkulatorResult');
+    const hasilMlValue = document.getElementById('hasilMlValue');
+    const hasilLiterValue = document.getElementById('hasilLiterValue');
+    const hasilKategoriValue = document.getElementById('hasilKategoriValue');
+
+    const showCalcError = (message) => {
+      if (!calcError || !calcErrorText) return;
+      calcErrorText.textContent = message;
+      calcError.classList.remove('d-none');
+    };
+
+    const hideCalcError = () => {
+      if (!calcError) return;
+      calcError.classList.add('d-none');
+    };
+
+    if (kalkulatorForm) {
+      const submitBtn = kalkulatorForm.querySelector('button[type="submit"]');
+
+      kalkulatorForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideCalcError();
+
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'MENGHITUNG...';
+        }
+
+        try {
+          const response = await fetch(kalkulatorForm.action, {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: new FormData(kalkulatorForm),
+          });
+
+          let json = {};
+          try {
+            json = await response.json();
+          } catch (_) {
+            json = {};
+          }
+
+          if (!response.ok) {
+            if (response.status === 422 && json.errors) {
+              const firstError = Object.values(json.errors)[0];
+              const firstMessage = Array.isArray(firstError) ? firstError[0] : 'Input tidak valid.';
+              showCalcError(firstMessage);
+            } else {
+              showCalcError(json.message || 'Terjadi kesalahan saat menghitung rekomendasi air.');
+            }
+            return;
+          }
+
+          hasilMlValue.textContent = json.hasil_ml ?? 0;
+          hasilLiterValue.textContent = Number(json.output_liter ?? 0).toFixed(2);
+          hasilKategoriValue.textContent = (json.kategori ?? '-').toString();
+          kalkulatorResult?.classList.remove('d-none');
+          kalkulatorResult?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => kalkulatorResult?.focus({ preventScroll: true }), 250);
+        } catch (error) {
+          showCalcError('Koneksi bermasalah. Coba beberapa saat lagi.');
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'HITUNG REKOMENDASI AIR →';
+          }
+        }
+      });
+    }
+
     // ========== JOURNAL SCROLL SNAP WITH ARROW NAVIGATION ==========
     const wrapper = document.getElementById('journalSnapWrapper');
     const prevBtn = document.getElementById('prevJournal');
