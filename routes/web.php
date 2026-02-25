@@ -27,6 +27,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/fuzzy/usia-tanaman', [FuzzyController::class, 'usiaTanaman'])->name('fuzzy.usia');
         Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
         Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar');
+        Route::get('/artikel', fn() => view('admin.jurnal.index'))->name('jurnal.index');
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     });
 });

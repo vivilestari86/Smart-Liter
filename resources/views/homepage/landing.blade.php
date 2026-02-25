@@ -679,10 +679,7 @@
               </svg>
             </div>
             <div class="journal-content">
-              <div class="d-flex align-items-center gap-2 mb-2">
-                <h3 class="fw-bold mb-0" style="color: var(--brand-dark); font-size: 1.8rem;">{{ $j['title'] }}</h3>
-                <span class="badge bg-success ms-2">Vol. {{ $index + 1 }}</span>
-              </div>
+        
               <p class="text-muted mb-2"><small>Oleh: {{ $j['penulis'] }}</small></p>
               <p class="mb-3" style="font-size: 1.1rem;">{{ $j['summary'] }}</p>
               
@@ -704,10 +701,6 @@
               </div>
               
               <div class="d-flex justify-content-between align-items-center mt-4">
-                <div>
-                  <span class="badge bg-info me-2">PDF</span>
-                  <span class="badge bg-warning text-dark">Open Access</span>
-                </div>
                 <a href="#" class="btn btn-success fw-bold px-4 py-2" onclick="alert('Demo: PDF akan didownload - {{ $j['pdf'] }}')">
                   📥 Download PDF
                 </a>

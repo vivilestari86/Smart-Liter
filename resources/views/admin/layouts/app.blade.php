@@ -88,6 +88,12 @@
       <span class="mi">🕘</span>
       <span class="mt">Riwayat Perhitungan</span>
   </a>
+
+  <a class="side-link {{ request()->routeIs('admin.artikel.*') ? 'active' : '' }}"
+   href="{{ route('admin.jurnal.index') }}">
+    <span class="mi">📰</span>
+    <span class="mt">Kelola Jurnal</span>
+</a>
 </nav>
 
             <div class="sidebar-bottom">
