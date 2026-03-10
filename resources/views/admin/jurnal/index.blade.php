@@ -46,29 +46,34 @@
   </div>
 
   {{-- Filter & Search Bar --}}
-  <div class="filter-section">
+  <form class="filter-section" method="GET" action="{{ route('admin.jurnal.index') }}">
     <div class="search-wrapper">
       <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666">
         <circle cx="11" cy="11" r="8"/>
         <path d="M21 21l-4.35-4.35"/>
       </svg>
-      <input type="text" class="search-input" placeholder="Cari jurnal...">
+      <input type="text" name="q" class="search-input" placeholder="Cari jurnal..." value="{{ request('q') }}" autocomplete="off">
     </div>
     
     <div class="filter-actions">
-      <select class="filter-select">
-        <option>Semua Status</option>
-        <option>Published</option>
-        <option>Draft</option>
+      <select name="status" class="filter-select">
+        <option value="">Semua Status</option>
+        <option value="Publish" {{ request('status') === 'Publish' ? 'selected' : '' }}>Publish</option>
+        <option value="Draft" {{ request('status') === 'Draft' ? 'selected' : '' }}>Draft</option>
       </select>
-      <button class="btn btn-light">
+      <button class="btn btn-light" type="submit">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/>
         </svg>
         Filter
       </button>
+      @if(request('q') || request('status'))
+      <a class="btn btn-light" href="{{ route('admin.jurnal.index') }}">
+        Reset
+      </a>
+      @endif
     </div>
-  </div>
+  </form>
 
   {{-- Journal List --}}
   <div class="journal-list">
@@ -77,7 +82,7 @@
       @php
         $totalCount = method_exists($journals, 'total') ? $journals->total() : $journals->count();
       @endphp
-      <span class="item-count">Menampilkan {{ $journals->count() }} dari {{ $totalCount }} jurnal</span>
+      <span class="item-count" data-total="{{ $totalCount }}">Menampilkan {{ $journals->count() }} dari {{ $totalCount }} jurnal</span>
     </div>
 
     {{-- Journal Cards View (Alternative to table for better mobile experience) --}}
@@ -378,6 +383,8 @@
   border: 2px solid #f0f0f0;
   border-radius: 12px;
   font-size: 14px;
+  color: #1a1a1a;
+  caret-color: #2e7d32;
   transition: all 0.2s ease;
   background: #fafafa;
 }
@@ -909,7 +916,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const pAuthor = document.getElementById('pAuthor');
   const pDesc = document.getElementById('pDesc');
   const pVer = document.getElementById('pVer');
-  const pTags = document.getElementById('pTags');
 
   function openModal(btn) {
     pTitle.textContent = btn.dataset.title || '-';
@@ -945,6 +951,7 @@ document.addEventListener('DOMContentLoaded', () => {
       closeModal();
     }
   });
+
 });
 </script>
 @endpush

@@ -9,9 +9,24 @@ use Illuminate\Support\Facades\Storage;
 
 class JournalController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $journals = Journal::orderBy('created_at', 'desc')->paginate(10);
+        $query = Journal::query()->orderBy('created_at', 'desc');
+
+        if ($request->filled('q')) {
+            $search = $request->input('q');
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('summary', 'like', "%{$search}%")
+                    ->orWhere('author', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status') && in_array($request->input('status'), ['Publish', 'Draft'], true)) {
+            $query->where('status', $request->input('status'));
+        }
+
+        $journals = $query->paginate(10)->withQueryString();
         $total = Journal::count();
         $publishedCount = Journal::where('status', 'Publish')->count();
         $draftCount = Journal::where('status', 'Draft')->count();
