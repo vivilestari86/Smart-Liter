@@ -139,9 +139,9 @@
                             data-umur="{{ $row->usia_tanaman }}"
                             data-output="{{ $row->output_liter }}"
                             data-kategori="{{ $row->kategori }}"
-                            data-deskripsi='@json($row->deskripsi ?? "-")'
+                            data-deskripsi="Sistem melakukan proses inferensi menggunakan metode fuzzy tsukamoto berdasarkan nilai suhu {{ $row->suhu }} °C, kelembapan udara {{ $row->kelembapan_udara }} %, kelembapan tanah {{ $row->kelembapan_tanah }} %, dan usia tanaman {{ $row->usia_tanaman }} hari sehingga menghasilkan output penyiraman sebesar {{ $row->output_liter }} liter dengan kategori {{ $row->kategori }}."
                             title="Lihat Deskripsi"
-                        >👁</button>
+                        >👁️</button>
                     </td>
                 </tr>
             @empty
@@ -154,7 +154,7 @@
     </div>
 
     <div style="margin-top:12px;">
-        {{ $histories->links() }}
+        {{ $histories->links('pagination::simple-tailwind') }}
     </div>
 </div>
 
@@ -326,9 +326,11 @@
     background:#f7f7fb;
     border: 1px solid rgba(0,0,0,.08);
     border-radius: 12px;
-    padding: 12px;
-    white-space: pre-wrap;
+    padding: 14px 16px;
     font-size: 13px;
+    line-height: 1.6;     /* jarak antar baris */
+    text-align: justify;  /* teks rata kiri kanan */
+    white-space: pre-wrap;
 }
 </style>
 @endsection

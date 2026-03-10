@@ -562,7 +562,7 @@
                 <label class="form-label fw-bold">🌡️ Suhu Udara</label>
                 <div class="input-group input-group-custom">
                   <input type="number" step="0.1" name="suhu" class="form-control form-control-custom" 
-                         value="{{ old('suhu', 20) }}" placeholder="20">
+                         value="{{ old('suhu',) }}" placeholder="30">
                   <span class="input-group-text input-group-text-custom">°C</span>
                 </div>
               </div>
@@ -572,7 +572,7 @@
                 <label class="form-label fw-bold">💨 Kelembapan Udara</label>
                 <div class="input-group input-group-custom">
                   <input type="number" step="0.1" name="kelembapan_udara" class="form-control form-control-custom"
-                         value="{{ old('kelembapan_udara', 20) }}" placeholder="20">
+                         value="{{ old('kelembapan_udara',) }}" placeholder="40">
                   <span class="input-group-text input-group-text-custom">%</span>
                 </div>
               </div>
@@ -582,7 +582,7 @@
                 <label class="form-label fw-bold">🌱 Kelembapan Tanah</label>
                 <div class="input-group input-group-custom">
                   <input type="number" step="0.1" name="kelembapan_tanah" class="form-control form-control-custom"
-                         value="{{ old('kelembapan_tanah', 20) }}" placeholder="20">
+                         value="{{ old('kelembapan_tanah',) }}" placeholder="45">
                   <span class="input-group-text input-group-text-custom">%</span>
                 </div>
               </div>
@@ -592,7 +592,7 @@
                 <label class="form-label fw-bold">📅 Umur Tanaman</label>
                 <div class="input-group input-group-custom">
                   <input type="number" step="1" name="umur" class="form-control form-control-custom"
-                         value="{{ old('umur', 20) }}" placeholder="20">
+                         value="{{ old('umur',) }}" placeholder="80">
                   <span class="input-group-text input-group-text-custom">Hari</span>
                 </div>
               </div>
@@ -639,7 +639,7 @@
         <h2 class="text-white fw-bold mb-1" style="font-size: 2.5rem;">📚 Jurnal & Publikasi</h2>
         <p class="text-white-50 mb-0">Geser atau gunakan panah untuk menjelajahi koleksi jurnal</p>
       </div>
-      <span class="badge-new">+3 Update</span>
+      
     </div>
     
     <!-- JOURNAL CONTAINER DENGAN NAVIGASI PANAH -->

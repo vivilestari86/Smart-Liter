@@ -151,7 +151,7 @@
                     <input class="input" type="password" name="password" placeholder="Masukkan Kata Sandi" required>
                 </div>
 
-                <a class="hint-link" href="#">Lupa Kata Sandi?</a>
+                <a class="hint-link" href="#">Klik tombol dibawah</a>
 
                 <button type="submit" class="btn-login">Masuk</button>
             </form>

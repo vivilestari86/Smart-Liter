@@ -123,18 +123,17 @@ class RiwayatController extends Controller
             ->values();
 
         // ===== Dropdown Kategori (dari data, kalau kosong fallback default) =====
+        $allowedKategori = collect(['mati','sedikit','banyak']);
+
         $kategorisFromDb = CalculationHistory::select('kategori')
             ->whereNotNull('kategori')
             ->where('kategori', '!=', '')
-            ->distinct()
-            ->orderBy('kategori')
-            ->pluck('kategori');
-
-        $kategorisDefault = collect(['mati', 'sedikit', 'banyak']);
+            ->pluck('kategori')
+            ->map(fn($v) => strtolower(trim($v)))
+            ->filter(fn($v) => $allowedKategori->contains($v));
 
         $kategoris = $kategorisFromDb
-            ->map(fn($v) => strtolower(trim($v)))
-            ->merge($kategorisDefault)
+            ->merge($allowedKategori)
             ->unique()
             ->values();
 
