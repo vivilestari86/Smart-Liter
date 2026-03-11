@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'Admin Dashboard')</title>
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     @stack('styles')
@@ -15,7 +16,15 @@
         {{-- Sidebar --}}
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-top">
-        <button class="icon-btn" id="btnToggle" title="Menu" type="button">☰</button>
+        {{-- <a class="sidebar-logo" href="{{ route('admin.dashboard') }}" aria-label="SmartLiter Dashboard">
+            <span class="sidebar-logo-mark">
+                <i class="fa-solid fa-droplet"></i>
+            </span>
+            <span class="sidebar-logo-text">SmartLiter</span>
+        </a> --}}
+        <button class="icon-btn" id="btnToggle" title="Menu" type="button">
+            <i class="fa-solid fa-bars-staggered"></i>
+        </button>
     </div>
 
     <nav class="sidebar-nav">
@@ -44,7 +53,7 @@
 
     <a class="side-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"
      href="{{ route('admin.dashboard') }}">
-      <span class="mi">🏠</span>
+      <span class="mi"><i class="fa-solid fa-house"></i></span>
       <span class="mt">Dashboard</span>
   </a>
 
@@ -53,52 +62,52 @@
   <button type="button"
           class="side-link side-link-btn {{ $isFuzzy ? 'active' : '' }}"
           id="btnFuzzy">
-      <span class="mi">⚙️</span>
+      <span class="mi"><i class="fa-solid fa-sliders"></i></span>
       <span class="mt">Konfigurasi Fuzzy</span>
-      <span class="chev" id="chevFuzzy">▾</span>
+      <span class="chev" id="chevFuzzy"><i class="fa-solid fa-chevron-down"></i></span>
   </button>
 
   <div class="submenu {{ $isFuzzy ? 'open' : '' }}" id="submenuFuzzy">
       <a class="sub-link {{ request()->routeIs('admin.fuzzy.suhu') ? 'active' : '' }}"
          href="{{ route('admin.fuzzy.suhu') }}">
-          <span class="si">🌡️</span>
+          <span class="si"><i class="fa-solid fa-temperature-three-quarters"></i></span>
           <span class="st">Suhu Udara</span>
       </a>
 
       <a class="sub-link {{ request()->routeIs('admin.fuzzy.k_udara') ? 'active' : '' }}"
          href="{{ route('admin.fuzzy.k_udara') }}">
-          <span class="si">💧</span>
+          <span class="si"><i class="fa-solid fa-cloud-rain"></i></span>
           <span class="st">Kelembapan Udara</span>
       </a>
 
       <a class="sub-link {{ request()->routeIs('admin.fuzzy.k_tanah') ? 'active' : '' }}"
          href="{{ route('admin.fuzzy.k_tanah') }}">
-          <span class="si">🌱</span>
+          <span class="si"><i class="fa-solid fa-seedling"></i></span>
           <span class="st">Kelembapan Tanah</span>
       </a>
 
       <a class="sub-link {{ request()->routeIs('admin.fuzzy.usia') ? 'active' : '' }}"
          href="{{ route('admin.fuzzy.usia') }}">
-          <span class="si">🪴</span>
+          <span class="si"><i class="fa-solid fa-leaf"></i></span>
           <span class="st">Usia Tanaman</span>
       </a>
 
       <a class="sub-link {{ request()->routeIs('admin.fuzzy.output') ? 'active' : '' }}"
          href="{{ route('admin.fuzzy.output') }}">
-          <span class="si">🚿</span>
+          <span class="si"><i class="fa-solid fa-faucet-drip"></i></span>
           <span class="st">Output</span>
       </a>
   </div>
 
   <a class="side-link {{ request()->routeIs('admin.riwayat.*') ? 'active' : '' }}"
      href="{{ route('admin.riwayat.index') }}">
-      <span class="mi">🕘</span>
+      <span class="mi"><i class="fa-solid fa-clock-rotate-left"></i></span>
       <span class="mt">Riwayat Perhitungan</span>
   </a>
 
   <a class="side-link {{ request()->routeIs('admin.artikel.*') ? 'active' : '' }}"
    href="{{ route('admin.jurnal.index') }}">
-    <span class="mi">📰</span>
+    <span class="mi"><i class="fa-solid fa-newspaper"></i></span>
     <span class="mt">Kelola Jurnal</span>
 </a>
 </nav>
@@ -106,7 +115,10 @@
             <div class="sidebar-bottom">
                 <form method="POST" action="{{ route('admin.logout') }}">
                     @csrf
-                    <button class="sidebar-login" type="submit">Keluar</button>
+                    <button class="sidebar-login" type="submit">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>Keluar</span>
+                    </button>
                 </form>
             </div>
         </aside>
@@ -152,7 +164,6 @@
   const syncChev = () => {
   const isOpen = submenuFuzzy.classList.contains('open');
   chevFuzzy.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
-  chevFuzzy.textContent = isOpen ? '▴' : '▾';
 };
   syncChev();
 

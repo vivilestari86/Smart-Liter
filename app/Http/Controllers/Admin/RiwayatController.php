@@ -72,7 +72,7 @@ class RiwayatController extends Controller
             ->pluck('total', 'kategori');
 
         $pie = [
-            'mati' => (int)($pieCounts['mati'] ?? 0),
+            'mati' => (int)($pieCounts['Mati'] ?? 0),
             'sedikit' => (int)($pieCounts['sedikit'] ?? 0),
             'banyak' => (int)($pieCounts['banyak'] ?? 0),
         ];
@@ -141,5 +141,13 @@ class RiwayatController extends Controller
             'histories', 'years', 'kategoris', 'year', 'month', 'kategori',
                     'totalHariIni', 'tamuUnik', 'rataOutput', 'pie', 'perJam'
         ));
+    }
+    public function destroy($id)
+    {
+        $data = CalculationHistory::findOrFail($id);
+        $data->delete();
+
+        return redirect()->back()
+            ->with('success', 'Data riwayat berhasil dihapus');
     }
 }

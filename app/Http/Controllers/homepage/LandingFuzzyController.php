@@ -4,6 +4,7 @@ namespace App\Http\Controllers\homepage;
 
 use App\Http\Controllers\Controller;
 use App\Models\CalculationHistory;
+use App\Models\FuzzyCategory;
 use App\Services\FuzzyCalculatorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -55,7 +56,7 @@ class LandingFuzzyController extends Controller
             'kelembapan_tanah' => $data['kelembapan_tanah'],
             'usia_tanaman' => (int) $data['umur'],
             'output_liter' => $hasil['output_liter'],
-            'kategori' => $hasil['kategori'] ?? null,
+            'kategori' => $hasil['output_liter'] ? $hasil['kategori'] : FuzzyCategory::where("name", "Mati")->first()->name,
             'deskripsi' => $hasil['deskripsi'] ?? null,
         ]);
 
@@ -66,9 +67,10 @@ class LandingFuzzyController extends Controller
             'message' => 'Perhitungan berhasil.',
             'hasil_ml' => $hasilMl,
             'output_liter' => $hasil['output_liter'],
-            'kategori' => $hasil['kategori'] ?? null,
+            'kategori' => $hasil['output_liter'] ? $hasil['kategori'] : FuzzyCategory::where("name", "Mati")->first()->name,
             'deskripsi' => $hasil['deskripsi'] ?? null,
             'debug_rules' => $hasil['debug_rules'] ?? null,
         ]);
+
     }
 }

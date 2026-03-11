@@ -30,6 +30,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/fuzzy/{slug}/save', [FuzzyController::class, 'save'])->name('fuzzy.save');
         Route::post('/fuzzy/{slug}/test', [FuzzyController::class, 'test'])->name('fuzzy.test');
         Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
+        Route::delete('/riwayat/{id}', [RiwayatController::class, 'destroy'])->name('riwayat.destroy');
         Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar');
         // journal management routes
         Route::get('/artikel', [\App\Http\Controllers\Admin\JournalController::class, 'index'])->name('jurnal.index');

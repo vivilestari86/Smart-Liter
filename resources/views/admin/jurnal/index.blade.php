@@ -148,14 +148,18 @@
             </svg>
           </a>
           
-          <button class="action-btn delete-btn" onclick="return confirm('Hapus jurnal ini?')" title="Hapus">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <polyline points="3 6 5 6 21 6"/>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0h10"/>
-              <line x1="10" y1="11" x2="10" y2="17"/>
-              <line x1="14" y1="11" x2="14" y2="17"/>
-            </svg>
-          </button>
+          <form action="{{ route('admin.jurnal.destroy', $journal) }}" method="POST" class="delete-form js-delete-form" data-title="{{ $journal->title }}">
+            @csrf
+            @method('DELETE')
+            <button class="action-btn delete-btn" type="submit" title="Hapus">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0h10"/>
+                <line x1="10" y1="11" x2="10" y2="17"/>
+                <line x1="14" y1="11" x2="14" y2="17"/>
+              </svg>
+            </button>
+          </form>
         </div>
       </div>
     </div>
@@ -214,16 +218,7 @@
           
          
           
-          <div class="preview-actions">
-            <button class="btn btn-primary">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-              Download PDF
-            </button>
-          </div>
+          
         </div>
       </div>
     </div>
@@ -576,6 +571,10 @@
   gap: 8px;
 }
 
+.delete-form {
+  margin: 0;
+}
+
 .action-btn {
   width: 40px;
   height: 40px;
@@ -906,8 +905,10 @@
 </style>
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  const swal = window.Swal;
   const modal = document.getElementById('prevModal');
   const closeBg = document.getElementById('prevClose');
   const closeX = document.getElementById('prevX');
@@ -916,6 +917,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const pAuthor = document.getElementById('pAuthor');
   const pDesc = document.getElementById('pDesc');
   const pVer = document.getElementById('pVer');
+
+  if (swal && @json(session('success'))) {
+    swal.fire({
+      icon: 'success',
+      title: 'Berhasil',
+      text: @json(session('success')),
+      confirmButtonColor: '#166534',
+    });
+  }
 
   function openModal(btn) {
     pTitle.textContent = btn.dataset.title || '-';
@@ -950,6 +960,35 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Escape' && modal.classList.contains('open')) {
       closeModal();
     }
+  });
+
+  document.querySelectorAll('.js-delete-form').forEach((form) => {
+    form.addEventListener('submit', (event) => {
+      if (!swal) {
+        const confirmed = window.confirm('Hapus jurnal ini?');
+        if (!confirmed) {
+          event.preventDefault();
+        }
+        return;
+      }
+
+      event.preventDefault();
+
+      swal.fire({
+        title: 'Hapus jurnal ini?',
+        text: `Jurnal "${form.dataset.title || 'tanpa judul'}" akan dihapus permanen.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, hapus',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#c62828',
+        cancelButtonColor: '#6b7280',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          form.submit();
+        }
+      });
+    });
   });
 
 });

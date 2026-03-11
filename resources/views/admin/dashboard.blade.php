@@ -144,21 +144,36 @@
 
     <td>{{ $row->kategori ? ucfirst($row->kategori) : '-' }}</td>
 
-                <td class="action">
-                    <button class="icon-eye js-open-detail"
-                        type="button"
-                        data-ip="{{ $row->ip }}"
-                        data-tanggal="{{ $row->created_at?->format('d/m/Y H:i') }}"
-                        data-suhu="{{ $row->suhu }}"
-                        data-ku="{{ $row->kelembapan_udara }}"
-                        data-kt="{{ $row->kelembapan_tanah }}"
-                        data-umur="{{ $row->usia_tanaman }}"
-                        data-output="{{ $row->output_liter }}"
-                        data-kategori="{{ $row->kategori }}"
-                        data-deskripsi="Sistem melakukan proses inferensi menggunakan metode fuzzy tsukamoto berdasarkan nilai suhu {{ $row->suhu }} °C, kelembapan udara {{ $row->kelembapan_udara }} %, kelembapan tanah {{ $row->kelembapan_tanah }} %, dan usia tanaman {{ $row->usia_tanaman }} hari sehingga menghasilkan output penyiraman sebesar {{ $row->output_liter }} liter dengan kategori {{ $row->kategori }}."
-                        title="Detail"
-                    >👁️</button>
-                </td>
+                <td class="action action-group">
+                        <!-- tombol lihat -->
+                        <button
+                            type="button"
+                            class="icon-eye js-open-detail"
+                            data-ip="{{ $row->ip }}"
+                            data-tanggal="{{ $row->created_at?->format('d/m/Y H:i') }}"
+                            data-suhu="{{ $row->suhu }}"
+                            data-ku="{{ $row->kelembapan_udara }}"
+                            data-kt="{{ $row->kelembapan_tanah }}"
+                            data-umur="{{ $row->usia_tanaman }}"
+                            data-output="{{ $row->output_liter }}"
+                            data-kategori="{{ $row->kategori }}"
+                            data-deskripsi="Sistem melakukan proses inferensi menggunakan metode fuzzy tsukamoto berdasarkan nilai suhu {{ $row->suhu }} °C, kelembapan udara {{ $row->kelembapan_udara }} %, kelembapan tanah {{ $row->kelembapan_tanah }} %, dan usia tanaman {{ $row->usia_tanaman }} hari sehingga menghasilkan output penyiraman sebesar {{ $row->output_liter }} liter dengan kategori {{ $row->kategori }}."
+                            title="Lihat Deskripsi"
+                            aria-label="Lihat deskripsi riwayat"
+                        ><i class="fa-regular fa-eye"></i></button>
+
+                        <!-- tombol hapus -->
+                        <form action="{{ route('admin.riwayat.destroy',$row->id) }}" method="POST" class="js-delete-form action-form">
+                            @csrf
+                            @method('DELETE')
+                            <button 
+                            type="submit" class="icon-delete"
+                            title="Hapus Riwayat"
+                            aria-label="Hapus riwayat"
+                            ><i class="fa-regular fa-trash-can"></i></button>
+                        </form>
+
+                    </td>
             </tr>
         @empty
             <tr>
@@ -176,27 +191,54 @@
 {{-- Modal detail (samakan seperti riwayat) --}}
 <div class="modal" id="detailModal" aria-hidden="true">
   <div class="modal-backdrop" id="modalClose"></div>
-  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modal-head">
-      <div>
-        <div id="modalTitle" style="font-weight:900; font-size:16px;">Detail Riwayat Perhitungan</div>
-        <div id="modalSub" style="font-size:12px; opacity:.8; margin-top:2px;"></div>
+  <div class="modal-card modal-detail-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-head detail-head">
+      <div class="detail-head-main">
+        <div class="detail-kicker">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>Riwayat Perhitungan</span>
+        </div>
+        <div id="modalTitle" class="detail-title">Detail Riwayat Perhitungan</div>
+        <div id="modalSub" class="detail-sub"></div>
       </div>
-      <button class="modal-x" id="modalX" type="button">✕</button>
+      <button class="modal-x detail-close" id="modalX" type="button" aria-label="Tutup detail">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
     </div>
 
-    <div class="modal-body">
-      <div class="modal-grid">
-        <div><b>Suhu:</b> <span id="mSuhu"></span></div>
-        <div><b>Kelembapan Udara:</b> <span id="mKU"></span></div>
-        <div><b>Kelembapan Tanah:</b> <span id="mKT"></span></div>
-        <div><b>Usia Tanaman:</b> <span id="mUmur"></span></div>
-        <div><b>Output:</b> <span id="mOutput"></span></div>
-        <div><b>Kategori:</b> <span id="mKategori"></span></div>
+    <div class="modal-body detail-body">
+      <div class="detail-grid">
+        <div class="detail-stat">
+          <span class="detail-label">Suhu</span>
+          <span class="detail-value" id="mSuhu"></span>
+        </div>
+        <div class="detail-stat">
+          <span class="detail-label">Kelembapan Udara</span>
+          <span class="detail-value" id="mKU"></span>
+        </div>
+        <div class="detail-stat">
+          <span class="detail-label">Kelembapan Tanah</span>
+          <span class="detail-value" id="mKT"></span>
+        </div>
+        <div class="detail-stat">
+          <span class="detail-label">Usia Tanaman</span>
+          <span class="detail-value" id="mUmur"></span>
+        </div>
+        <div class="detail-stat">
+          <span class="detail-label">Output Penyiraman</span>
+          <span class="detail-value" id="mOutput"></span>
+        </div>
+        <div class="detail-stat">
+          <span class="detail-label">Kategori</span>
+          <span class="detail-badge" id="mKategori">-</span>
+        </div>
       </div>
 
-      <div style="margin-top:12px;">
-        <div style="font-weight:800; margin-bottom:6px;">Deskripsi</div>
+      <div class="detail-desc-panel">
+        <div class="detail-desc-title">
+          <i class="fa-regular fa-file-lines"></i>
+          <span>Deskripsi Perhitungan</span>
+        </div>
         <div class="desc-box" id="mDeskripsi"></div>
       </div>
     </div>
@@ -206,7 +248,19 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    const swal = window.Swal;
+
+    if (swal && @json(session('success'))) {
+        swal.fire({
+            icon: 'success',
+            title: 'Berhasil',
+            text: @json(session('success')),
+            confirmButtonColor: '#b8937d',
+        });
+    }
+
     // ===== PIE dari PHP (aman walau kosong) =====
     const pieData = @json([$pie['mati'], $pie['sedikit'], $pie['banyak']]);
     const usiaChartData = @json($usiaChartData ?? []);
@@ -416,10 +470,9 @@
         }
     });
 
-    // ===== Modal detail (samakan seperti riwayat) =====
+        // ===== Modal detail (samakan seperti riwayat) =====
         const modal = document.getElementById('detailModal');
         const closeBackdrop = document.getElementById('modalClose');
-        const closeX = document.getElementById('modalX');
 
         const modalSub = document.getElementById('modalSub');
         const mSuhu = document.getElementById('mSuhu');
@@ -429,6 +482,20 @@
         const mOutput = document.getElementById('mOutput');
         const mKategori = document.getElementById('mKategori');
         const mDeskripsi = document.getElementById('mDeskripsi');
+        const applyKategoriBadge = (value) => {
+        const rawValue = String(value || '-').trim();
+        const normalized = rawValue.toLowerCase();
+        const formatted = rawValue === '-'
+            ? '-'
+            : rawValue.charAt(0).toUpperCase() + rawValue.slice(1);
+
+        mKategori.textContent = formatted;
+        mKategori.className = 'detail-badge';
+
+        if (['mati', 'sedikit', 'banyak'].includes(normalized)) {
+            mKategori.classList.add(`is-${normalized}`);
+        }
+        };
 
         const openModal = (btn) => {
         modalSub.textContent = `${btn.dataset.ip || '-'} • ${btn.dataset.tanggal || '-'}`;
@@ -438,7 +505,7 @@
         mKT.textContent = btn.dataset.kt ? `${btn.dataset.kt} %` : '-';
         mUmur.textContent = btn.dataset.umur ? `${btn.dataset.umur} Hari` : '-';
         mOutput.textContent = btn.dataset.output ? `${btn.dataset.output} Liter` : '-';
-        mKategori.textContent = btn.dataset.kategori || '-';
+        applyKategoriBadge(btn.dataset.kategori);
         mDeskripsi.textContent = btn.dataset.deskripsi || '-';
 
         modal.classList.add('open');
@@ -455,11 +522,40 @@
         const btn = e.target.closest('.js-open-detail');
         if (btn) return openModal(btn);
 
-        if (e.target === closeBackdrop || e.target === closeX) return closeModal();
+        if (e.target === closeBackdrop || e.target.closest('#modalX')) return closeModal();
         });
 
         document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closeModal();
+        });
+
+        document.querySelectorAll('.js-delete-form').forEach((form) => {
+        form.addEventListener('submit', (event) => {
+            if (!swal) {
+                const confirmed = window.confirm('Yakin ingin menghapus data ini?');
+                if (!confirmed) {
+                    event.preventDefault();
+                }
+                return;
+            }
+
+            event.preventDefault();
+
+            swal.fire({
+                title: 'Hapus data riwayat?',
+                text: 'Data yang dihapus tidak bisa dikembalikan.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, hapus',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6b7280',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
         });
         </script>
 

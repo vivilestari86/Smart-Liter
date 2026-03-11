@@ -21,10 +21,11 @@ class DashboardController extends Controller
             ->pluck('total', 'kategori');
 
         $pie = [
-            'mati' => (int) ($counts['mati'] ?? 0),
+            'mati' => (int) ($counts['Mati'] ?? 0),
             'sedikit' => (int) ($counts['sedikit'] ?? 0),
             'banyak' => (int) ($counts['banyak'] ?? 0),
         ];
+        
 
         // Riwayat terbaru (ambil 8 terakhir)
         $latest = CalculationHistory::latest('created_at')->take(8)->get();
